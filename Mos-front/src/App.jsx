@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
 import './App.css'
-
+import About from './Customer';
 function Home() {
   return (
     <>
@@ -14,7 +14,7 @@ function Home() {
       </div>
 
       <div className="button-row">
-        <Link to="/customer" className="nav-button customer-button">
+        <Link to="/about" className="nav-button customer-button">
           お客様用画面へ移行
         </Link>
       </div>
@@ -59,7 +59,8 @@ function App() {
         <main className="home-section">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/customer" element={<CustomerPage />} />
+            <Route path="/about" element={<About/>} />
+            <Route path="/Customer" element={<CustomerPage />} />
             <Route path="/staff" element={<StaffPage />} />
           </Routes>
         </main>
