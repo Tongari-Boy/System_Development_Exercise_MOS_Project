@@ -1,7 +1,7 @@
-import { Link } from "react-router-dom";
-import "./customer.css";
+import { Link } from 'react-router-dom'
+import '../Customer.css'
 
-const hasOrderHistory = false;
+const hasOrderHistory = false
 
 export default function CustomerPage() {
   return (
@@ -37,5 +37,5 @@ export default function CustomerPage() {
         </Link>
       </div>
     </div>
-  );
+  )
 }
