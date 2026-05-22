@@ -55,23 +55,32 @@ export function MenuLayout({ activeTab, children, showCheckout, onCheckoutClick 
         {showCheckout ? (
           <button
             type="button"
-            className="footer-button checkout-button"
+            className={`footer-button checkout-button ${activeTab === 'categories' ? 'is-current' : ''}`}
             onClick={onCheckoutClick}
           >
             お会計
           </button>
         ) : (
-          <Link to="/menu/categories" className="footer-button">
+          <Link
+            to="/menu/categories"
+            className={`footer-button ${activeTab === 'categories' ? 'is-current' : ''}`}
+          >
             ホームへ
           </Link>
         )}
 
-        <Link to="/order-send" className="footer-button badge-parent">
+        <Link
+          to="/order-send"
+          className={`footer-button badge-parent ${activeTab === 'send' ? 'is-current' : ''}`}
+        >
           注文送信
           <span className="badge">{cartCount}</span>
         </Link>
 
-        <Link to="/call-staff" className="footer-button">
+        <Link
+          to="/call-staff"
+          className={`footer-button ${activeTab === 'call' ? 'is-current' : ''}`}
+        >
           店員呼び出し
         </Link>
       </footer>

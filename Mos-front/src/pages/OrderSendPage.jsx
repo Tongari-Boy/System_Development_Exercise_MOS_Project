@@ -20,7 +20,7 @@ export default function OrderSendPage() {
   }
 
   return (
-    <MenuLayout activeTab="free">
+    <MenuLayout activeTab="send">
       <div className="modal-overlay">
         <div className="modal-card">
           <p>注文を確定しますか？</p>

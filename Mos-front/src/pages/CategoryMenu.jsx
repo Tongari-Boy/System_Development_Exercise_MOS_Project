@@ -26,7 +26,7 @@ export default function CategoryMenu() {
   }
 
   return (
-    <MenuLayout activeTab="free" showCheckout onCheckoutClick={handleCheckout}>
+    <MenuLayout activeTab="categories" showCheckout onCheckoutClick={handleCheckout}>
       <div className="category-grid">
         {categories.map((category) => (
           <Link

@@ -83,8 +83,9 @@
 }
 
 .circle-button.is-active {
-  background: #fff;
-  border: 2px solid #111;
+  background: #e1e1e1;
+  border: 2px solid #777;
+  color: #111;
 }
 
 .circle-button:hover {
@@ -538,6 +539,11 @@
   color: #fff;
 }
 
+.footer-button.is-current {
+  background: #d9d9d9;
+  color: #111;
+}
+
 .footer-button:hover {
   transform: translateY(-1px);
 }
@@ -707,6 +713,11 @@
   flex-direction: column;
   align-items: center;
   padding: 12px;
+}
+
+.category-card.is-current {
+  background: #e1e1e1;
+  border: 2px solid #777;
 }
 
 .category-image-area {

@@ -4,7 +4,7 @@ import '../menu.css'
 
 export default function CallStaffPage() {
   return (
-    <MenuLayout activeTab="free">
+    <MenuLayout activeTab="call">
       <div className="modal-overlay">
         <div className="modal-card">
           <p>店員を呼び出しますか？</p>

@@ -64,18 +64,18 @@ export default function OrderConfirmPage() {
                           <button
                             type="button"
                             className="order-step-btn"
-                            onClick={() => handleRemoveOne(group)}
-                            aria-label="数量を減らす"
-                          >
-                            ∨
-                          </button>
-                          <button
-                            type="button"
-                            className="order-step-btn"
                             onClick={() => handleAddOne(group)}
                             aria-label="数量を増やす"
                           >
                             ∧
+                          </button>
+                          <button
+                            type="button"
+                            className="order-step-btn"
+                            onClick={() => handleRemoveOne(group)}
+                            aria-label="数量を減らす"
+                          >
+                            ∨
                           </button>
                         </div>
                       </div>

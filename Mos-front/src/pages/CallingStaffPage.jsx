@@ -4,7 +4,7 @@ import '../menu.css'
 
 export default function CallingStaffPage() {
   return (
-    <MenuLayout activeTab="free">
+    <MenuLayout activeTab="call">
       <div className="calling-screen">
         <div className="calling-card">
           <div className="calling-animation">

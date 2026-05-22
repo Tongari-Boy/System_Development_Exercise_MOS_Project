@@ -14,6 +14,15 @@ export function CartProvider({ children }) {
   })
 
   useEffect(() => {
+    const didInit = sessionStorage.getItem('didInitOrderHistory')
+    if (!didInit) {
+      setOrderHistory([])
+      localStorage.removeItem('orderHistory')
+      sessionStorage.setItem('didInitOrderHistory', 'true')
+    }
+  }, [])
+
+  useEffect(() => {
     localStorage.setItem('orderHistory', JSON.stringify(orderHistory))
   }, [orderHistory])
 
