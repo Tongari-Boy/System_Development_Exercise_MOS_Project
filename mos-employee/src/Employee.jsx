@@ -1,166 +1,190 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { clearUser, getUseCase, getUser, setUseCase, clearUseCase } from './auth'
+import { normalizeAllowedUseCases, ROLE_LABEL } from './staffDb'
+import { useNavStack } from './useNavStack'
+import UseCaseSelect from './UseCaseSelect'
+
 import Orders from './pages/Orders'
 import Seats from './pages/Seats'
-import Store from './pages/Store'
-import { clearUser, getUser } from './auth'
+import MenuManagement from './pages/MenuManagement'
+import StaffManagement from './pages/StaffManagement'
+import AdminHub from './pages/AdminHub'
+
 import './Employee.css'
 
-const TITLE_MAP = {
-  home: 'ホーム',
-  orders: '注文管理',
-  seats: '座席管理',
-  store: '店舗管理',
-}
-
-function Employee() {
+export default function Employee() {
   const navigate = useNavigate()
+  const user = getUser()
 
-  const [view, setView] = useState('home')
-  const [menuOpen, setMenuOpen] = useState(false)
-
-  // ✅ 右上ユーザー
-  const [userOpen, setUserOpen] = useState(false)
-  const user = getUser() ?? { name: '山田 太郎', id: '12345', role: 'staff' }
-  const initial = user?.name?.[0] ?? '？'
-
-  const menuRef = useRef(null)
-  const userRef = useRef(null)
-
-  // 外クリックで閉じる（メニュー＆ユーザーポップ）
+  // ガード（保険）
   useEffect(() => {
-    const handleClick = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setMenuOpen(false)
-      }
-      if (userRef.current && !userRef.current.contains(e.target)) {
-        setUserOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [])
+    if (!user) navigate('/', { replace: true })
+  }, [user, navigate])
 
-  // ESCで閉じる（メニュー＆ユーザーポップ）
-  
+  const allowedUseCases = useMemo(() => {
+    if (!user) return []
+    return normalizeAllowedUseCases(user.role, user.allowedUseCases)
+  }, [user])
+
+  const [useCase, setUseCaseState] = useState(() => getUseCase())
+
+  // 1=A：選択肢が1つなら自動遷移（用途セット）
   useEffect(() => {
-    const handleClick = (e) => {
-      // メニュー外クリック
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setMenuOpen(false)
-      }
+    if (!user) return
+    if (useCase) return
+    if (allowedUseCases.length === 1) {
+      setUseCase(allowedUseCases[0])
+      setUseCaseState(allowedUseCases[0])
     }
+  }, [user, useCase, allowedUseCases])
 
-    document.addEventListener('mousedown', handleClick)
+  // 画面履歴（戻る＝ひとつ前）
+  // 用途ごとに初期画面を変える
+  const initialScreen = useMemo(() => {
+    if (useCase === 'hall') return 'seats'
+    if (useCase === 'kitchen') return 'orders'
+    if (useCase === 'admin') return 'adminHub'
+    return 'usecase'
+  }, [useCase])
 
-    return () => {
-      document.removeEventListener('mousedown', handleClick)
-    }
-  }, [])
+  const nav = useNavStack(initialScreen)
 
+  // 用途が変わったら履歴をリセット
+  useEffect(() => {
+    nav.reset(initialScreen)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialScreen])
 
-  const screenTitle = TITLE_MAP[view] ?? 'ホーム'
-
-  const handleLogout = () => {
+  const logout = () => {
     clearUser()
     navigate('/', { replace: true })
   }
 
-  return (
-    <>
-      {/* ===== ヘッダー（共通） ===== */}
-      <header className="topHeader">
-        {/* 左：戻る + ハンバーガー（現状維持） */}
-        <div className="leftControls">
-          {view !== 'home' && (
-            <button className="iconBtn" onClick={() => setView('home')} aria-label="ホームに戻る">
-              ←
-            </button>
-          )}
-          <button className="iconBtn hamburger" onClick={() => setMenuOpen(true)} aria-label="メニューを開く">
-            ☰
-          </button>
-        </div>
+  const changeUseCase = () => {
+    // 2=A：用途変更ボタンで用途選択に戻す
+    clearUseCase()
+    setUseCaseState(null)
+    nav.reset('usecase')
+  }
 
-        {/* 中央：店名 + 画面名（現状維持） */}
-        <div className="titleBlock">
-          <div className="shopName">居酒屋みどり亭</div>
-          <div className="screenName">{screenTitle}</div>
-        </div>
+  // 用途未選択なら用途選択画面
+  if (!user) return null
 
-        {/* ✅ 右上：ユーザー（山アイコン） */}
-        <div className="userArea" ref={userRef}>
-          <button
-            className="userIcon"
-            onClick={() => setUserOpen((v) => !v)}
-            aria-haspopup="menu"
-            aria-expanded={userOpen}
-            aria-label="ユーザーメニュー"
-          >
-            {initial}
-          </button>
-
-          {userOpen && (
-            <div className="userPop" role="menu">
-              <p className="userLine">
-                <strong>{user?.name}</strong>
-              </p>
-              <p className="userLine subtle">ID: {user?.id}</p>
-              <p className="userLine subtle">
-                権限: <strong>{user?.role === 'manager' ? '店長' : '従業員'}</strong>
-              </p>
-
-              <button className="logoutBtn" onClick={handleLogout}>
-                ログアウト
-              </button>
-
-              <div className="popHint">外クリック / ESC で閉じます</div>
-            </div>
-          )}
-        </div>
-      </header>
-
-      {/* ===== オーバーレイ（クリックで閉じる） ===== */}
-      {menuOpen && (
-        <div
-          className="overlay"
-          onClick={() => setMenuOpen(false)}
+  if (!useCase) {
+    return (
+      <div className="content">
+        <Header
+          title="用途選択"
+          left={nav.canBack ? () => nav.back() : null}
+          onLogout={logout}
+          onChangeUseCase={null}
+          userLabel={`${ROLE_LABEL[user.role]}：${user.name}`}
         />
-      )}
-      
-      {/* ===== スライドメニュー ===== */}
-      <aside className={`sideMenu ${menuOpen ? 'active' : ''}`} ref={menuRef}>
-        <div className="menuHeader">
-          <div className="menuTitle">メニュー</div>
-          <button className="closeBtn" onClick={() => setMenuOpen(false)} aria-label="閉じる">
-            ×
-          </button>
-        </div>
+        <UseCaseSelect
+          allowed={allowedUseCases}
+          onSelect={(uc) => {
+            setUseCase(uc)
+            setUseCaseState(uc)
+          }}
+        />
+      </div>
+    )
+  }
 
-        <button className="menuItem" onClick={() => { setView('orders'); setMenuOpen(false) }}>
-          注文管理
-        </button>
-        <button className="menuItem" onClick={() => { setView('seats'); setMenuOpen(false) }}>
-          座席管理
-        </button>
-        <button className="menuItem" onClick={() => { setView('store'); setMenuOpen(false) }}>
-          店舗管理
-        </button>
-      </aside>
+  // 表示制限（用途→画面）
+  // hall: seatsだけ / kitchen: ordersだけ / admin: store（中で制限）
+  const screen = nav.current
 
-      {/* ===== コンテンツ（画面遷移なしで切り替え） ===== */}
-      <main className="content">
-        {view === 'home' && (
-          <div className="homeHint">
-            <p>左上のメニューから操作を選択してください。</p>
-          </div>
-        )}
-        {view === 'orders' && <Orders />}
-        {view === 'seats' && <Seats />}
-        {view === 'store' && <Store />}
-      </main>
-    </>
+  let body = null
+
+  if (useCase === 'hall') {
+    body = <Seats />
+  } else if (useCase === 'kitchen') {
+    body = <Orders />
+  } else if (useCase === 'admin') {
+    // adminの中の制御：
+    // - 社員：メニュー管理のみ（トップ出さず直行）
+    // - 店長：トップ→メニュー or 従業員
+    if (screen === 'adminHub') {
+      body = (
+        <AdminHub
+          user={user}
+          onBack={(next) => {
+            if (next === 'menu') nav.push('menu')
+            if (next === 'staff') nav.push('staff')
+          }}
+        />
+      )
+    } else if (screen === 'menu') {
+      body = <MenuManagement onBack={() => nav.back()} />
+    } else if (screen === 'staff') {
+      // 店長のみ
+      if (user.role !== 'manager') {
+        body = (
+          <section className="page">
+            <h2>権限がありません</h2>
+          </section>
+        )
+      } else {
+        body = <StaffManagement onBack={() => nav.back()} />
+      }
+    } else {
+      // 社員はadminHubを経由せずMenuへ（AdminHubで処理済みだが保険）
+      body = <MenuManagement onBack={() => nav.back()} />
+    }
+  }
+
+  const headerTitle =
+    useCase === 'hall' ? 'ホール（座席管理）'
+    : useCase === 'kitchen' ? '厨房（注文管理）'
+    : '業務（店舗管理）'
+
+  return (
+    <div className="content">
+      <Header
+        title={headerTitle}
+        left={nav.canBack ? () => nav.back() : null}
+        onLogout={logout}
+        onChangeUseCase={changeUseCase}
+        userLabel={`${ROLE_LABEL[user.role]}：${user.name}`}
+      />
+      {body}
+    </div>
   )
 }
 
-export default Employee
+/** 共通ヘッダー（用途変更ボタン付き） */
+function Header({ title, left, onLogout, onChangeUseCase, userLabel }) {
+  return (
+    <header className="topHeader">
+      <div className="leftControls">
+        {left ? (
+          <button className="iconBtn" onClick={left} type="button" aria-label="戻る">
+            ←
+          </button>
+        ) : (
+          <div style={{ width: 42 }} />
+        )}
+      </div>
+
+      <div className="titleBlock">
+        <div className="shopName">居酒屋みどり亭</div>
+        <div className="screenName">{title}</div>
+      </div>
+
+      <div className="rightControls">
+        {onChangeUseCase && (
+          <button className="btnMini" type="button" onClick={onChangeUseCase}>
+            用途変更
+          </button>
+        )}
+        <button className="btnMini" type="button" onClick={onLogout}>
+          ログアウト
+        </button>
+      </div>
+
+      <div className="userMini">{userLabel}</div>
+    </header>
+  )
+}

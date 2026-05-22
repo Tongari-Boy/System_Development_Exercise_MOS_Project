@@ -1,14 +1,9 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
+// src/ProtectedRoute.jsx
+import { Navigate, Outlet } from 'react-router-dom'
 import { getUser } from './auth'
 
-function ProtectedRoute() {
+export default function ProtectedRoute() {
   const user = getUser()
-  const location = useLocation()
-
-  if (!user) {
-    return <Navigate to="/" replace state={{ from: location.pathname }} />
-  }
+  if (!user) return <Navigate to="/" replace />
   return <Outlet />
 }
-
-export default ProtectedRoute
