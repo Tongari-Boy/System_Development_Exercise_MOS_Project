@@ -247,7 +247,7 @@ function StaffManagement({ onBack }) {
                   value={form.id}
                   onChange={(e) => setForm((p) => ({ ...p, id: e.target.value }))}
                   placeholder="例：S001"
-                  disabled={mode === 'edit'} // 推奨：IDは変更不可
+                  disabled={mode === 'edit'}
                 />
               </label>
 

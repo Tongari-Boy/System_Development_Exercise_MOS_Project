@@ -3,7 +3,6 @@ import StaffManagement from './StaffManagement'
 import MenuManagement from './MenuManagement'
 
 function Store() {
-  // hub: 店舗管理トップ / staff: 従業員管理 / menu: メニュー管理
   const [storeView, setStoreView] = useState('hub')
 
   if (storeView === 'staff') {
@@ -20,22 +19,14 @@ function Store() {
       <p>管理したい項目を選択してください。</p>
 
       <div style={{ display: 'grid', gap: 12, marginTop: 12 }}>
-        <button
-          style={tileStyle}
-          onClick={() => setStoreView('menu')}
-          type="button"
-        >
+        <button style={tileStyle} onClick={() => setStoreView('menu')} type="button">
           <div style={{ fontWeight: 900, fontSize: 18 }}>メニュー管理</div>
           <div style={{ opacity: 0.7, marginTop: 4 }}>
             商品一覧 / 価格変更 / 売り切れ設定
           </div>
         </button>
 
-        <button
-          style={tileStyle}
-          onClick={() => setStoreView('staff')}
-          type="button"
-        >
+        <button style={tileStyle} onClick={() => setStoreView('staff')} type="button">
           <div style={{ fontWeight: 900, fontSize: 18 }}>従業員管理</div>
           <div style={{ opacity: 0.7, marginTop: 4 }}>
             従業員一覧 / 権限 / 無効化

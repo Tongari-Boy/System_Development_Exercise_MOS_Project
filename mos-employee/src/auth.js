@@ -1,4 +1,3 @@
-// src/auth.js
 const USER_KEY = 'currentUser_v1'
 const USECASE_KEY = 'currentUseCase_v1'
 

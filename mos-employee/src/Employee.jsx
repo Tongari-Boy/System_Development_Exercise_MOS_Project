@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+
 import { clearUser, getUseCase, getUser, setUseCase, clearUseCase } from './auth'
 import { normalizeAllowedUseCases, ROLE_LABEL } from './staffDb'
 import { useNavStack } from './useNavStack'
@@ -40,7 +41,6 @@ export default function Employee() {
   }, [user, useCase, allowedUseCases])
 
   // 画面履歴（戻る＝ひとつ前）
-  // 用途ごとに初期画面を変える
   const initialScreen = useMemo(() => {
     if (useCase === 'hall') return 'seats'
     if (useCase === 'kitchen') return 'orders'
@@ -56,10 +56,32 @@ export default function Employee() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialScreen])
 
-  const logout = () => {
+  // ===== ログアウト確認（②）ここから =====
+  const [logoutOpen, setLogoutOpen] = useState(false)
+
+  const requestLogout = () => setLogoutOpen(true)
+  const cancelLogout = () => setLogoutOpen(false)
+
+  const doLogout = () => {
     clearUser()
     navigate('/', { replace: true })
   }
+
+  const confirmLogout = () => {
+    setLogoutOpen(false)
+    doLogout()
+  }
+
+  // ESCで閉じる
+  useEffect(() => {
+    if (!logoutOpen) return
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setLogoutOpen(false)
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [logoutOpen])
+  // ===== ログアウト確認（②）ここまで =====
 
   const changeUseCase = () => {
     // 2=A：用途変更ボタンで用途選択に戻す
@@ -68,19 +90,20 @@ export default function Employee() {
     nav.reset('usecase')
   }
 
-  // 用途未選択なら用途選択画面
   if (!user) return null
 
+  // 用途未選択なら用途選択画面
   if (!useCase) {
     return (
       <div className="content">
         <Header
           title="用途選択"
           left={nav.canBack ? () => nav.back() : null}
-          onLogout={logout}
+          onRequestLogout={requestLogout}
           onChangeUseCase={null}
           userLabel={`${ROLE_LABEL[user.role]}：${user.name}`}
         />
+
         <UseCaseSelect
           allowed={allowedUseCases}
           onSelect={(uc) => {
@@ -88,14 +111,31 @@ export default function Employee() {
             setUseCaseState(uc)
           }}
         />
+
+        {logoutOpen && (
+          <>
+            <div className="logoutOverlay" onClick={cancelLogout} />
+            <div className="logoutModal" role="dialog" aria-modal="true">
+              <h3 className="logoutTitle">ログアウトしますか？</h3>
+              <p className="logoutText">作業中の画面からログアウトします。</p>
+
+              <div className="logoutActions">
+                <button className="logoutCancel" type="button" onClick={cancelLogout}>
+                  キャンセル
+                </button>
+                <button className="logoutOk" type="button" onClick={confirmLogout}>
+                  OK（ログアウト）
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     )
   }
 
   // 表示制限（用途→画面）
-  // hall: seatsだけ / kitchen: ordersだけ / admin: store（中で制限）
   const screen = nav.current
-
   let body = null
 
   if (useCase === 'hall') {
@@ -130,32 +170,54 @@ export default function Employee() {
         body = <StaffManagement onBack={() => nav.back()} />
       }
     } else {
-      // 社員はadminHubを経由せずMenuへ（AdminHubで処理済みだが保険）
+      // 社員はadminHubを経由せずMenuへ（保険）
       body = <MenuManagement onBack={() => nav.back()} />
     }
   }
 
   const headerTitle =
-    useCase === 'hall' ? 'ホール（座席管理）'
-    : useCase === 'kitchen' ? '厨房（注文管理）'
-    : '業務（店舗管理）'
+    useCase === 'hall'
+      ? 'ホール（座席管理）'
+      : useCase === 'kitchen'
+      ? '厨房（注文管理）'
+      : '業務（店舗管理）'
 
   return (
     <div className="content">
       <Header
         title={headerTitle}
         left={nav.canBack ? () => nav.back() : null}
-        onLogout={logout}
+        onRequestLogout={requestLogout}
         onChangeUseCase={changeUseCase}
         userLabel={`${ROLE_LABEL[user.role]}：${user.name}`}
       />
+
       {body}
+
+      {logoutOpen && (
+        <>
+          <div className="logoutOverlay" onClick={cancelLogout} />
+          <div className="logoutModal" role="dialog" aria-modal="true">
+            <h3 className="logoutTitle">ログアウトしますか？</h3>
+            <p className="logoutText">作業中の画面からログアウトします。</p>
+
+            <div className="logoutActions">
+              <button className="logoutCancel" type="button" onClick={cancelLogout}>
+                キャンセル
+              </button>
+              <button className="logoutOk" type="button" onClick={confirmLogout}>
+                OK（ログアウト）
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }
 
 /** 共通ヘッダー（用途変更ボタン付き） */
-function Header({ title, left, onLogout, onChangeUseCase, userLabel }) {
+function Header({ title, left, onRequestLogout, onChangeUseCase, userLabel }) {
   return (
     <header className="topHeader">
       <div className="leftControls">
@@ -179,7 +241,7 @@ function Header({ title, left, onLogout, onChangeUseCase, userLabel }) {
             用途変更
           </button>
         )}
-        <button className="btnMini" type="button" onClick={onLogout}>
+        <button className="btnMini" type="button" onClick={onRequestLogout}>
           ログアウト
         </button>
       </div>

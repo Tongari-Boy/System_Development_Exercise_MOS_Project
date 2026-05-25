@@ -287,3 +287,44 @@
   font-size: 20px;
   margin: 0 2px;
 }
+/* ===== フィルタ＆検索（追記） ===== */
+.ordersTools {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.ordersFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filterBtn {
+  padding: 10px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.14);
+  background: #fff;
+  font-weight: 900;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.filterBtn.active {
+  background: rgba(0,0,0,0.10);
+}
+
+.ordersSearch {
+  width: 100%;
+  padding: 12px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.14);
+  background: #fff;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.ordersHeaderLeft {
+  display: grid;
+  gap: 4px;
+}

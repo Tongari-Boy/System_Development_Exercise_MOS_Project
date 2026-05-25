@@ -1,4 +1,3 @@
-
 .topHeader {
   position: sticky;
   top: 0;
@@ -9,6 +8,12 @@
   padding: 10px 12px;
   background: #f2f2f2;
   border-bottom: 1px solid rgba(0,0,0,0.10);
+}
+
+.leftControls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 .rightControls {
@@ -35,12 +40,6 @@
   opacity: 0.7;
 }
 
-.leftControls {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
 /* 共通のアイコンボタン */
 .iconBtn {
   width: 42px;
@@ -54,12 +53,6 @@
 
 .iconBtn:hover {
   background: rgba(0,0,0,0.06);
-}
-
-/* ハンバーガー：サイズを元に戻す（大きめ） */
-.iconBtn.hamburger {
-  font-size: 24px;
-  line-height: 1;
 }
 
 /* ===== 中央タイトル ===== */
@@ -82,71 +75,12 @@
   opacity: 0.75;
 }
 
-/* ✅ 右上ユーザー（山アイコン＋ポップ） */
-.userArea {
-  justify-self: end;
-  position: relative;
+/* ===== コンテンツ ===== */
+.content {
+  padding: 16px;
 }
 
-.userIcon {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: #2f80ed;
-  color: #fff;
-  font-weight: 900;
-  border: none;
-  cursor: pointer;
-}
-
-.userIcon:hover {
-  opacity: 0.9;
-}
-
-.userPop {
-  position: absolute;
-  right: 0;
-  top: 46px;
-  width: 220px;
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.10);
-  border-radius: 12px;
-  padding: 12px;
-  box-shadow: 0 10px 22px rgba(0,0,0,0.14);
-}
-
-.userLine {
-  margin: 0 0 6px;
-}
-
-.subtle {
-  font-size: 13px;
-  opacity: 0.8;
-}
-
-.logoutBtn {
-  width: 100%;
-  margin-top: 8px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: none;
-  background: #111;
-  color: #fff;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.logoutBtn:hover {
-  opacity: 0.92;
-}
-
-.popHint {
-  margin-top: 8px;
-  font-size: 11px;
-  opacity: 0.6;
-}
-
-/* ===== オーバーレイ ===== */
+/* =====（既存）サイドメニュー overlay がある場合に備えて1本化 ===== */
 .overlay {
   position: fixed;
   inset: 0;
@@ -154,87 +88,71 @@
   z-index: 15;
 }
 
-/* ===== スライドメニュー ===== */
-.sideMenu {
+/* ===== ログアウト確認（専用） ===== */
+.logoutOverlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 30;
-  width: 260px;
-  height: 100%;
-  padding: 14px;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 9000;
+}
+
+.logoutModal {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(360px, calc(100% - 32px));
   background: #fff;
-  border-right: 1px solid rgba(0,0,0,0.10);
-  box-shadow: 2px 0 16px rgba(0,0,0,0.18);
-  transform: translateX(-100%);
-  transition: transform 0.28s ease;
-}
-
-.sideMenu.active {
-  transform: translateX(0);
-}
-
-.menuHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 10px;
-  border-bottom: 1px solid rgba(0,0,0,0.08);
-  margin-bottom: 10px;
-}
-
-.menuTitle {
-  font-weight: 900;
-  letter-spacing: 0.06em;
-}
-
-.closeBtn {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  border: none;
-  background: rgba(0,0,0,0.06);
-  cursor: pointer;
-  font-size: 20px;
-}
-
-.closeBtn:hover {
-  background: rgba(0,0,0,0.10);
-}
-
-.menuItem {
-  width: 100%;
-  text-align: left;
-  padding: 12px 12px;
-  margin-bottom: 10px;
-  border: 1px solid rgba(0,0,0,0.12);
-  border-radius: 12px;
-  background: #f6f6f6;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.menuItem:hover {
-  background: #eaeaea;
-}
-
-/* ===== コンテンツ ===== */
-.content {
-  padding: 16px;
-}
-
-.homeHint {
-  padding: 14px;
-  background: #fff;
+  border-radius: 16px;
   border: 1px solid rgba(0,0,0,0.10);
-  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.22);
+  padding: 14px;
+  z-index: 9100;
 }
-.overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.3);
-  z-index: 5;
+
+.logoutTitle {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.logoutText {
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.85;
+  line-height: 1.5;
+}
+
+.logoutActions {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.logoutCancel {
+  padding: 12px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.14);
+  background: #fff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.logoutCancel:hover {
+  background: rgba(0,0,0,0.04);
+}
+
+.logoutOk {
+  padding: 12px 12px;
+  border-radius: 12px;
+  border: none;
+  background: #ff3b30;
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.logoutOk:hover {
+  opacity: 0.92;
 }
