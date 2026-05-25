@@ -1,4 +1,4 @@
-import { useContext, useEffect } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { MenuLayout } from '../components/MenuLayout'
 import { CartContext } from '../CartContext'
@@ -7,16 +7,25 @@ import '../menu.css'
 export default function OrderSendPage() {
   const { cartItems, confirmOrder } = useContext(CartContext)
   const navigate = useNavigate()
+  const [isSent, setIsSent] = useState(false)
 
   useEffect(() => {
-    if (cartItems.length === 0) {
+    if (cartItems.length === 0 && !isSent) {
       navigate('/menu')
     }
-  }, [cartItems, navigate])
+  }, [cartItems, isSent, navigate])
 
   const handleConfirm = () => {
     const didConfirm = confirmOrder()
-    navigate(didConfirm ? '/history' : '/menu')
+    if (!didConfirm) {
+      navigate('/menu')
+      return
+    }
+
+    setIsSent(true)
+    setTimeout(() => {
+      navigate('/menu/categories')
+    }, 2300)
   }
 
   return (
@@ -37,6 +46,16 @@ export default function OrderSendPage() {
           </div>
         </div>
       </div>
+
+      {isSent && (
+        <div className="toast-overlay" role="status" aria-live="polite">
+          <div className="toast-card">
+            注文が送信されました
+            <br />
+            ホーム画面へ戻ります
+          </div>
+        </div>
+      )}
     </MenuLayout>
   )
 }
