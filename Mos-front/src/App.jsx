@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import './App.css'
 import { CartProvider } from './CartContext'
-import Home from './pages/home'
+import Home from './pages/Home'
 import MenuPage from './pages/MenuPage'
 import CategoryMenu from './pages/CategoryMenu'
 import HistoryPage from './pages/HistoryPage'

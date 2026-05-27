@@ -44,7 +44,9 @@ export function CartProvider({ children }) {
 
   useEffect(() => {
     if (!hasLoadedHistory) return
-    orderHistoryRepository.save(orderHistory)
+    orderHistoryRepository.save(orderHistory).catch(() => {
+      console.warn('Failed to save order history to storage.')
+    })
   }, [orderHistory, hasLoadedHistory])
 
   const addToCart = (item) => {

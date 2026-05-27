@@ -8,8 +8,7 @@ export default function OrderSendPage() {
   const { cartItems, confirmOrder, orderHistory } = useContext(CartContext)
   const navigate = useNavigate()
   const [isSent, setIsSent] = useState(false)
-  const [showHistoryWarning, setShowHistoryWarning] = useState(false)
-  const [showRapidWarning, setShowRapidWarning] = useState(false)
+  const [warningType, setWarningType] = useState(null)
   const [pendingConfirm, setPendingConfirm] = useState(false)
 
   useEffect(() => {
@@ -19,9 +18,20 @@ export default function OrderSendPage() {
   }, [cartItems, isSent, navigate])
 
   useEffect(() => {
+    if (!isSent) return
+
+    const timerId = setTimeout(() => {
+      navigate('/menu')
+    }, 2300)
+
+    return () => {
+      clearTimeout(timerId)
+    }
+  }, [isSent, navigate])
+
+  useEffect(() => {
     if (cartItems.length === 0) {
-      setShowHistoryWarning(false)
-      setShowRapidWarning(false)
+      setWarningType(null)
       setPendingConfirm(false)
     }
   }, [cartItems])
@@ -34,14 +44,10 @@ export default function OrderSendPage() {
     }
 
     setIsSent(true)
-    setTimeout(() => {
-      navigate('/menu')
-    }, 2300)
   }
 
   const handleWarningContinue = () => {
-    setShowHistoryWarning(false)
-    setShowRapidWarning(false)
+    setWarningType(null)
 
     if (pendingConfirm) {
       setPendingConfirm(false)
@@ -78,8 +84,7 @@ export default function OrderSendPage() {
     const hasRapidDuplicate = Boolean(lastAttempt && Date.now() - lastAttempt < 1000)
 
     if (hasDuplicate || hasRapidDuplicate) {
-      setShowHistoryWarning(hasDuplicate)
-      setShowRapidWarning(hasRapidDuplicate)
+      setWarningType(hasRapidDuplicate ? 'rapid' : 'history')
       setPendingConfirm(true)
       return
     }
@@ -90,36 +95,38 @@ export default function OrderSendPage() {
 
   return (
     <MenuLayout activeTab="send">
-      <div className="modal-overlay">
-        <div className="modal-card">
-          <p>注文を確定しますか？</p>
-          <div className="modal-actions">
-            <button
-              type="button"
-              className="modal-button"
-              onClick={handleConfirm}
-              disabled={cartItems.length === 0}
-            >
-              はい
-            </button>
-            <Link to="/menu" className="modal-button is-dark">いいえ</Link>
+      {!isSent && !warningType && (
+        <div className="modal-overlay">
+          <div className="modal-card">
+            <p>注文を確定しますか？</p>
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="modal-button"
+                onClick={handleConfirm}
+                disabled={cartItems.length === 0}
+              >
+                はい
+              </button>
+              <Link to="/menu" className="modal-button is-dark">いいえ</Link>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {(showHistoryWarning || showRapidWarning) && !isSent && (
+      {warningType && !isSent && (
         <div className="modal-overlay">
           <div className="modal-card">
             <p>
               注文が重複している可能性があります。
-              {showHistoryWarning && (
+              {warningType === 'history' && (
                 <>
                   <br />
                   過去5件以内に同じメニュー、同じ数量の注文があります。
                 </>
               )}
               
-              {showRapidWarning && (
+              {warningType === 'rapid' && (
                 <>
                   <br />
                   1秒以内に同じ注文が送信されています。
@@ -138,8 +145,7 @@ export default function OrderSendPage() {
                 to="/menu"
                 className="modal-button is-dark"
                 onClick={() => {
-                  setShowHistoryWarning(false)
-                  setShowRapidWarning(false)
+                  setWarningType(null)
                   setPendingConfirm(false)
                 }}
               >

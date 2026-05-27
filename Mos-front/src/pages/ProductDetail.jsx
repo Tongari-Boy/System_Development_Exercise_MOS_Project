@@ -51,12 +51,12 @@ export default function ProductDetail() {
           </div>
 
           <div className="qty-controls">
-            <button onClick={dec} className="qty-btn">-</button>
+            <button type="button" onClick={dec} className="qty-btn">-</button>
             <div className="qty-display">{qty}</div>
-            <button onClick={inc} className="qty-btn">+</button>
+            <button type="button" onClick={inc} className="qty-btn">+</button>
           </div>
 
-          <button className="add-to-cart big" onClick={handleAdd}>
+          <button type="button" className="add-to-cart big" onClick={handleAdd}>
             カートに入れる
           </button>
         </div>

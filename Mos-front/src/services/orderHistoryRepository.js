@@ -11,10 +11,20 @@ export const orderHistoryRepository = {
   },
 
   async save(history) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(history))
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(history))
+      return true
+    } catch {
+      return false
+    }
   },
 
   async clear() {
-    localStorage.removeItem(STORAGE_KEY)
+    try {
+      localStorage.removeItem(STORAGE_KEY)
+      return true
+    } catch {
+      return false
+    }
   }
 }

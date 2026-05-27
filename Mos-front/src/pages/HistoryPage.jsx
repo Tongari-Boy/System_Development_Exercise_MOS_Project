@@ -7,7 +7,7 @@ export default function HistoryPage() {
   const { orderHistory } = useContext(CartContext)
 
   const counts = orderHistory
-    .flatMap(order => order.items)
+    .flatMap((order) => (Array.isArray(order.items) ? order.items : []))
     .reduce((acc, item) => {
       acc[item.name] = (acc[item.name] || 0) + 1
       return acc
