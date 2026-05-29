@@ -37,6 +37,9 @@
   font-size: 12px;
   color: #222;
   line-height: 1.25;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .remaining-time span,
@@ -47,6 +50,26 @@
 .remaining-time strong {
   font-size: 13px;
   font-weight: 400;
+}
+
+.header-back-button {
+  background: #f5f5f5;
+  color: #111;
+  border: 1px solid #666;
+  border-radius: 8px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.header-back-button:hover {
+  transform: translateY(-1px);
+}
+
+.header-back-button:active {
+  transform: translateY(0);
+  opacity: 0.9;
 }
 
 .menu-header-buttons {
@@ -716,6 +739,21 @@
   padding: 40px;
   text-align: center;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.calling-button {
+  margin-top: 18px;
+  min-width: 90px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #666;
+  background: #f5f5f5;
+  color: #111;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .category-grid {

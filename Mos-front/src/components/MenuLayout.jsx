@@ -1,10 +1,50 @@
-import { useContext } from 'react'
-import { Link } from 'react-router-dom'
+import { useContext, useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { CartContext } from '../CartContext'
 import '../menu.css'
 
 export function MenuLayout({ activeTab, children, showCheckout, onCheckoutClick }) {
   const { cartCount } = useContext(CartContext)
+  const navigate = useNavigate()
+  const initialRemainingSeconds = 30
+  const countdownStorageKey = 'mosRemainingUntil'
+  const [remainingSeconds, setRemainingSeconds] = useState(initialRemainingSeconds)
+
+  const remainingLabel = useMemo(() => {
+    const minutes = Math.floor(remainingSeconds / 60)
+    const seconds = remainingSeconds % 60
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+  }, [remainingSeconds])
+
+  useEffect(() => {
+    const storedUntil = Number(sessionStorage.getItem(countdownStorageKey))
+    const now = Date.now()
+    const initialUntil = storedUntil && storedUntil > now
+      ? storedUntil
+      : now + initialRemainingSeconds * 1000
+
+    if (initialUntil !== storedUntil) {
+      sessionStorage.setItem(countdownStorageKey, String(initialUntil))
+    }
+
+    const updateRemaining = () => {
+      const diffSeconds = Math.max(0, Math.ceil((initialUntil - Date.now()) / 1000))
+      setRemainingSeconds(diffSeconds)
+    }
+
+    updateRemaining()
+    const timerId = setInterval(updateRemaining, 1000)
+
+    return () => clearInterval(timerId)
+  }, [])
+
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1)
+    } else {
+      navigate('/menu')
+    }
+  }
 
       // 滞在時間については本来はサーバーからの情報を元に計算するべきですが、DB実装までは固定値で表示しています
   return (
@@ -14,8 +54,14 @@ export function MenuLayout({ activeTab, children, showCheckout, onCheckoutClick 
 
         <div className="menu-header-content">
           <div className="remaining-time">
-            <span>滞在時間</span>
-            <strong>00:30</strong>
+            <button
+              type="button"
+              className="header-back-button"
+              onClick={handleBack}
+            >
+              戻る
+            </button>
+            <strong>{remainingLabel}</strong>
           </div>
 
           <div className="menu-header-buttons">
