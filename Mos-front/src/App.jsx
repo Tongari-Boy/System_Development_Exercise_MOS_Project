@@ -19,8 +19,9 @@ function App() {
       <div className="app-main">
         <main className="home-section">
           <Routes>
-            <Route path="/" element={<CourseSelectPage />} />
-            <Route path="/home" element={<Home />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/home" element={<Navigate to="/" replace />} />
+            <Route path="/course" element={<CourseSelectPage />} />
             <Route path="/about" element={<Navigate to="/menu" replace />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/menu" element={<CategoryMenu />} />

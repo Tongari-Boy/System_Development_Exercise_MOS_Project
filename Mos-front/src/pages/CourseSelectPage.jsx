@@ -34,7 +34,7 @@ export default function CourseSelectPage() {
 		sessionStorage.setItem('selectedCourse', pendingCourse.id)
 		sessionStorage.setItem('selectedCourseLabel', pendingCourse.label)
 		resetStayTimer()
-		navigate('/home')
+		navigate('/menu')
 	}
 
 	return (
