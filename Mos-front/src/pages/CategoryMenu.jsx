@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useContext, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { MenuLayout } from '../components/MenuLayout'
+import { CartContext } from '../CartContext'
 import '../menu.css'
 
 const categories = [
@@ -15,6 +16,7 @@ const categories = [
 export default function CategoryMenu() {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const navigate = useNavigate()
+  const { resetOrderHistory } = useContext(CartContext)
 
   const handleCheckout = () => {
     setIsConfirmOpen(true)
@@ -22,6 +24,7 @@ export default function CategoryMenu() {
 
   const handleConfirm = () => {
     setIsConfirmOpen(false)
+    resetOrderHistory()
     navigate('/checkout')
   }
 

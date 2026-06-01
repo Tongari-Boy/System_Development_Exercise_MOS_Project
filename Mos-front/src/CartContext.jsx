@@ -63,6 +63,10 @@ export function CartProvider({ children }) {
     setCartItems([])
   }
 
+  const resetOrderHistory = () => {
+    setOrderHistory([])
+  }
+
   const confirmOrder = () => {
     if (isStayExpired()) return false
     if (cartItems.length === 0) return false
@@ -84,6 +88,7 @@ export function CartProvider({ children }) {
         addToCart,
         removeFromCart,
         resetCart,
+        resetOrderHistory,
         orderHistory,
         confirmOrder
       }}
