@@ -41,7 +41,11 @@ export function MenuLayout({ activeTab, children, showCheckout, onCheckoutClick 
   const showBackButton = location.pathname !== '/menu'
   const isExpired = remainingSeconds <= 0
 
-      // 滞在時間については本来はサーバーからの情報を元に計算するべきですが、DB実装までは固定値で表示しています
+  const handleExpiredCheckout = () => {
+    navigate('/checkout')
+  }
+
+  
   return (
     <div className="menu-screen">
       <header className="menu-header">
@@ -105,11 +109,6 @@ export function MenuLayout({ activeTab, children, showCheckout, onCheckoutClick 
           </div>
         </div>
 
-        {isExpired && (
-          <div className="stay-expired-banner" role="status" aria-live="polite">
-            滞在時間が終了しました。注文はできません。
-          </div>
-        )}
       </header>
 
       <main className="menu-content">{children}</main>
@@ -159,6 +158,25 @@ export function MenuLayout({ activeTab, children, showCheckout, onCheckoutClick 
           店員呼び出し
         </Link>
       </footer>
+
+      {isExpired && (
+        <div className="stay-expired-overlay" role="dialog" aria-modal="true">
+          <div className="stay-expired-card">
+            <p>
+              滞在時間が終了しました。
+              <br />
+              お会計画面へ移動します。
+            </p>
+            <button
+              type="button"
+              className="stay-expired-action"
+              onClick={handleExpiredCheckout}
+            >
+              お会計へ
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
