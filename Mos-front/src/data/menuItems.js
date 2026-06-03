@@ -27,7 +27,7 @@ const menuItems = [
   { id: 21, name: '漬けキュウリ', price: 300, image: '', soldOut: false, category: 'speed' },
   { id: 22, name: '塩キャベツ', price: 280, image: '', soldOut: false, category: 'speed' },
   { id: 23, name: 'もやしのナムル', price: 280, image: '', soldOut: false, category: 'speed' },
-  { id: 24, name: '生ビール（中）', price: 520, image: '', soldOut: false, category: 'drink' },
+  { id: 24, name: '生ビール（中）', price: 520, image: '', soldOut: false, category: 'drink', drinkPlanExcluded: true },
   { id: 25, name: 'ハイボール', price: 480, image: '', soldOut: false, category: 'drink' },
   { id: 26, name: 'レモンサワー', price: 480, image: '', soldOut: false, category: 'drink' },
   { id: 27, name: 'ウーロン茶', price: 300, image: '', soldOut: false, category: 'drink' },
