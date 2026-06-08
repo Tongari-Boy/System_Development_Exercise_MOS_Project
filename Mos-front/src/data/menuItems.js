@@ -15,7 +15,18 @@ import mentaikoRiceImage from '../assets/明太ごはん.jpg'
 import edamameImage from '../assets/枝豆.jpg'
 import hiyayakkoImage from '../assets/冷奴.jpg'
 import tsukemekyuriImage from '../assets/漬けキュウリ.jpg'
+import yamitukiCabbageImage from '../assets/やみつきキャベツ.jpg'
 import moyashiNamuruImage from '../assets/もやしのナムル.jpg'
+import namaBeerImage from '../assets/生ビール.jpg'
+import highballImage from '../assets/ハイボール.jpg'
+import lemonSourImage from '../assets/レモンサワー.jpg'
+import oolongTeaImage from '../assets/烏龍茶.jpg'
+import colaImage from '../assets/コーラ.jpg'
+import vanillaIceImage from '../assets/バニラアイス.jpg'
+import matchaIceImage from '../assets/抹茶アイス.jpg'
+import kinakoIceImage from '../assets/黒蜜きなこアイス.jpg'
+import mitarashiDangoImage from '../assets/みたらし団子.jpg'
+import anninToufuuImage from '../assets/杏仁豆腐.jpg'
 
 const menuItems = [
   { id: 1, name: 'おしぼり', price: 0, image: oshiboriImage, soldOut: false, category: 'free' },
@@ -36,18 +47,18 @@ const menuItems = [
   { id: 19, name: '枝豆', price: 280, image: edamameImage, soldOut: false, category: 'speed' },
   { id: 20, name: '冷奴', price: 260, image: hiyayakkoImage, soldOut: false, category: 'speed' },
   { id: 21, name: '漬けキュウリ', price: 300, image: tsukemekyuriImage, soldOut: false, category: 'speed' },
-  { id: 22, name: '塩キャベツ', price: 280, image: '', soldOut: false, category: 'speed' },
+  { id: 22, name: 'やみつきキャベツ', price: 280, image: yamitukiCabbageImage, soldOut: false, category: 'speed' },
   { id: 23, name: 'もやしのナムル', price: 280, image: moyashiNamuruImage, soldOut: false, category: 'speed' },
-  { id: 24, name: '生ビール（中）', price: 520, image: '', soldOut: false, category: 'drink', drinkPlanExcluded: true },
-  { id: 25, name: 'ハイボール', price: 480, image: '', soldOut: false, category: 'drink' },
-  { id: 26, name: 'レモンサワー', price: 480, image: '', soldOut: false, category: 'drink' },
-  { id: 27, name: 'ウーロン茶', price: 300, image: '', soldOut: false, category: 'drink' },
-  { id: 28, name: 'コーラ', price: 300, image: '', soldOut: false, category: 'drink' },
-  { id: 29, name: 'バニラアイス', price: 320, image: '', soldOut: false, category: 'dessert' },
-  { id: 30, name: '抹茶アイス', price: 320, image: '', soldOut: false, category: 'dessert' },
-  { id: 31, name: '黒蜜きなこアイス', price: 380, image: '', soldOut: false, category: 'dessert' },
-  { id: 32, name: 'みたらし団子', price: 360, image: '', soldOut: false, category: 'dessert' },
-  { id: 33, name: '杏仁豆腐', price: 360, image: '', soldOut: false, category: 'dessert' }
+  { id: 24, name: '生ビール（中）', price: 520, image: namaBeerImage, soldOut: false, category: 'drink', drinkPlanExcluded: true },
+  { id: 25, name: 'ハイボール', price: 480, image: highballImage, soldOut: false, category: 'drink' },
+  { id: 26, name: 'レモンサワー', price: 480, image: lemonSourImage, soldOut: false, category: 'drink' },
+  { id: 27, name: 'ウーロン茶', price: 300, image: oolongTeaImage, soldOut: false, category: 'drink' },
+  { id: 28, name: 'コーラ', price: 300, image: colaImage, soldOut: false, category: 'drink' },
+  { id: 29, name: 'バニラアイス', price: 320, image: vanillaIceImage, soldOut: false, category: 'dessert' },
+  { id: 30, name: '抹茶アイス', price: 320, image: matchaIceImage, soldOut: false, category: 'dessert' },
+  { id: 31, name: '黒蜜きなこアイス', price: 380, image: kinakoIceImage, soldOut: false, category: 'dessert' },
+  { id: 32, name: 'みたらし団子', price: 360, image: mitarashiDangoImage, soldOut: false, category: 'dessert' },
+  { id: 33, name: '杏仁豆腐', price: 360, image: anninToufuuImage, soldOut: false, category: 'dessert' }
 ]
 
 export default menuItems

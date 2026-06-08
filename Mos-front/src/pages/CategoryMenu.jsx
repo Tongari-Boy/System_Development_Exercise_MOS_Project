@@ -7,14 +7,16 @@ import freeImage from '../assets/無料備品.jpg'
 import yakitoriImage from '../assets/焼き鳥.jpeg'
 import speedImage from '../assets/スピード.jpg'
 import riceImage from '../assets/ご飯もの.jpg'
+import drinkImage from '../assets/ドリンク.jpg'
+import dessertImage from '../assets/デザート.jpg'
 
 const categories = [
   { id: 'free', label: '無料備品', image: freeImage },
   { id: 'yakitori', label: '焼き鳥', image: yakitoriImage },
   { id: 'rice', label: 'ごはんもの', image: riceImage },
   { id: 'speed', label: 'スピード', image: speedImage },
-  { id: 'drink', label: 'ドリンク', image: '' },
-  { id: 'dessert', label: 'デザート', image: '' }
+  { id: 'drink', label: 'ドリンク', image: drinkImage },
+  { id: 'dessert', label: 'デザート', image: dessertImage }
 ]
 
 export default function CategoryMenu() {
