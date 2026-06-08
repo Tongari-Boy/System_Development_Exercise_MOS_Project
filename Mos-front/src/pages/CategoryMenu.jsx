@@ -22,7 +22,7 @@ const categories = [
 export default function CategoryMenu() {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const navigate = useNavigate()
-  const { cartItems, resetCart } = useContext(CartContext)
+  const { cartItems, resetCart, resetOrderHistory } = useContext(CartContext)
 
   const handleCheckout = () => {
     if (cartItems.length > 0) {
@@ -30,12 +30,15 @@ export default function CategoryMenu() {
       return
     }
 
+    resetCart()
+    resetOrderHistory()
     navigate('/checkout')
   }
 
   const handleConfirm = () => {
     setIsConfirmOpen(false)
     resetCart()
+    resetOrderHistory()
     navigate('/checkout')
   }
 
