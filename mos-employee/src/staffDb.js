@@ -1,10 +1,7 @@
-// src/staffDb.js
-
 const STAFF_KEY = 'staffList_v2'
 
-// 6桁採番のシーケンス
-const SEQ_S_KEY = 'staffSeq_S_v1' // 店長/社員 → S000001...
-const SEQ_A_KEY = 'staffSeq_A_v1' // アルバイト → A000001...
+const SEQ_S_KEY = 'staffSeq_S_v1'
+const SEQ_A_KEY = 'staffSeq_A_v1'
 
 export const ROLE_LABEL = {
   manager: '店長',
@@ -12,38 +9,20 @@ export const ROLE_LABEL = {
   partTime: 'アルバイト',
 }
 
-// 用途ラベル
 export const USECASE_LABEL = {
   hall: 'ホール',
   kitchen: '厨房',
   admin: '業務',
 }
 
-// 権限ラベル（表示用）
-export const PERMISSION_LABEL = {
-  manager: '店長',
-  employee: '従業員',
-  partTime: 'アルバイト',
-}
-
 const pad6 = (n) => String(n).padStart(6, '0')
 
-// 役職 → 権限（内部ロジック上は role をそのまま権限としてもOK）
-export function getPermissionFromRole(role) {
-  if (role === 'manager') return 'manager'
-  if (role === 'employee') return 'employee'
-  return 'partTime'
-}
-
-// 役職 → デフォルト用途
-// アルバイトは admin 不可
 export function getDefaultUseCasesFromRole(role) {
   if (role === 'manager') return ['hall', 'kitchen', 'admin']
   if (role === 'employee') return ['hall', 'kitchen', 'admin']
   return ['hall', 'kitchen']
 }
 
-// 念のため強制ルール
 export function normalizeAllowedUseCases(role, allowedUseCases) {
   const set = new Set(allowedUseCases || [])
   if (role === 'partTime') set.delete('admin')
@@ -82,8 +61,8 @@ export function loadStaff() {
 
   if (!raw) {
     sessionStorage.setItem(STAFF_KEY, JSON.stringify(defaultStaff))
-    sessionStorage.setItem(SEQ_S_KEY, '2') // S000002まで使用済み
-    sessionStorage.setItem(SEQ_A_KEY, '1') // A000001まで使用済み
+    sessionStorage.setItem(SEQ_S_KEY, '2')
+    sessionStorage.setItem(SEQ_A_KEY, '1')
     return defaultStaff
   }
 
@@ -91,20 +70,21 @@ export function loadStaff() {
     const parsed = JSON.parse(raw)
     const list = Array.isArray(parsed) ? parsed : defaultStaff
 
-    // 旧データ互換（もし古い shape が残っていても最低限動くように補完）
-    const normalized = list.map((s, i) => ({
-      id: s.id || `S${pad6(i + 1)}`,
-      name: s.name || `従業員${i + 1}`,
-      role: s.role === 'staff' ? 'employee' : (s.role || 'employee'),
-      active: typeof s.active === 'boolean' ? s.active : true,
-      password: s.password || '1111',
-      allowedUseCases: normalizeAllowedUseCases(
-        s.role === 'staff' ? 'employee' : (s.role || 'employee'),
-        s.allowedUseCases || getDefaultUseCasesFromRole(s.role === 'staff' ? 'employee' : (s.role || 'employee'))
-      ),
-    }))
+    const normalized = list.map((s, i) => {
+      const role = s.role === 'staff' ? 'employee' : (s.role || 'employee')
+      return {
+        id: s.id || `S${pad6(i + 1)}`,
+        name: s.name || `従業員${i + 1}`,
+        role,
+        active: typeof s.active === 'boolean' ? s.active : true,
+        password: s.password || '1111',
+        allowedUseCases: normalizeAllowedUseCases(
+          role,
+          s.allowedUseCases || getDefaultUseCasesFromRole(role)
+        ),
+      }
+    })
 
-    // シーケンスの保険更新
     syncSeq(normalized)
     return normalized
   } catch {
@@ -117,7 +97,6 @@ export function saveStaff(list) {
   syncSeq(list)
 }
 
-// 現在の一覧から S/A の最大番号をシーケンスに合わせる
 function syncSeq(list) {
   const sNums = list
     .map((x) => x.id)
@@ -145,7 +124,6 @@ function nextSeq(key) {
   return next
 }
 
-// role に応じて 6桁IDを採番
 export function generateIdByRole(role) {
   if (role === 'partTime') {
     const n = nextSeq(SEQ_A_KEY)
@@ -155,7 +133,6 @@ export function generateIdByRole(role) {
   return `S${pad6(n)}`
 }
 
-// 認証
 export function authenticate(id, password) {
   const list = loadStaff()
   const user = list.find((s) => s.id.toLowerCase() === String(id).toLowerCase())
@@ -175,3 +152,4 @@ export function authenticate(id, password) {
     },
   }
 }
+``

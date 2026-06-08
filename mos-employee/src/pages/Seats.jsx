@@ -7,7 +7,16 @@ const STATUS_LIST = [
   { key: 'using', label: '使用中', color: 'red' },
   { key: 'stop', label: '停止中', color: 'black' },
 ]
-const statusByKey = Object.fromEntries(STATUS_LIST.map(s => [s.key, s]))
+
+const FILTERS = [
+  { key: 'all', label: '全件' },
+  { key: 'empty', label: '空席' },
+  { key: 'using', label: '使用中' },
+  { key: 'paid', label: '会計済' },
+  { key: 'stop', label: '停止中' },
+]
+
+const statusByKey = Object.fromEntries(STATUS_LIST.map((s) => [s.key, s]))
 
 const makeSeats = (floor) => {
   const start = floor === 1 ? 101 : 201
@@ -33,6 +42,14 @@ function Seats() {
     return []
   }, [floor, seats1F, seats2F])
 
+  // ✅ 状態フィルタ
+  const [statusFilter, setStatusFilter] = useState('all')
+
+  const filteredSeats = useMemo(() => {
+    if (statusFilter === 'all') return seats
+    return seats.filter((seat) => seat.status === statusFilter)
+  }, [seats, statusFilter])
+
   // 確認ポップ（空席→使用中 / 使用中→会計済）
   const [confirm, setConfirm] = useState(null)
   // confirm: { mode: 'start'|'pay', seat }
@@ -56,7 +73,7 @@ function Seats() {
 
   const updateSeat = (nextSeat) => {
     if (!floor) return
-    const updater = (prev) => prev.map(s => (s.id === nextSeat.id ? nextSeat : s))
+    const updater = (prev) => prev.map((s) => (s.id === nextSeat.id ? nextSeat : s))
     if (floor === 1) setSeats1F(updater)
     if (floor === 2) setSeats2F(updater)
   }
@@ -71,7 +88,7 @@ function Seats() {
       setConfirm({ mode: 'pay', seat })
       return
     }
-    // paid / stop は何もしない（必要なら後で編集へ変更可能）
+    // paid / stop は何もしない
   }
 
   // 編集（編集ボタンのみ）
@@ -122,9 +139,10 @@ function Seats() {
     updateSeat({ ...seat, status: 'empty', people: 0 })
   }
 
-  // ✅ 一覧から階選択へ戻る
+  // 一覧から階選択へ戻る
   const backToFloorSelect = () => {
     setFloor(null)
+    setStatusFilter('all')
     setConfirm(null)
     setDraft(null)
     setDropOpen(false)
@@ -155,7 +173,6 @@ function Seats() {
   return (
     <section className="seats">
       <div className="seatsHeader">
-        {/* ✅ 戻るボタン追加 */}
         <div className="seatsHeaderLeft">
           <button className="floorBackBtn" onClick={backToFloorSelect} type="button">
             ← 戻る
@@ -168,8 +185,28 @@ function Seats() {
         </div>
       </div>
 
+      {/* ✅ 状態フィルタ */}
+      <div className="seatTools">
+        <div className="seatFilters">
+          {FILTERS.map((f) => (
+            <button
+              key={f.key}
+              type="button"
+              className={`seatFilterBtn ${statusFilter === f.key ? 'active' : ''}`}
+              onClick={() => setStatusFilter(f.key)}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="seatCount">
+          表示 {filteredSeats.length} 件 / 全 {seats.length} 件
+        </div>
+      </div>
+
       <div className="seatList">
-        {seats.map((seat) => (
+        {filteredSeats.map((seat) => (
           <button
             key={seat.id}
             className="seatCard"
@@ -185,7 +222,6 @@ function Seats() {
               </div>
             </div>
 
-            {/* 右：編集 + （会計済のみ）バッシング完了 */}
             <div className="seatRight">
               <button
                 className="editBtn"
@@ -213,6 +249,12 @@ function Seats() {
             </div>
           </button>
         ))}
+
+        {filteredSeats.length === 0 && (
+          <div className="seatEmpty">
+            該当する座席がありません。
+          </div>
+        )}
       </div>
 
       {/* ===== 確認ポップ（空席/使用中） ===== */}
@@ -256,7 +298,7 @@ function Seats() {
         </>
       )}
 
-      {/* ===== 座席詳細（編集モーダル）※編集ボタンのみで表示 ===== */}
+      {/* ===== 座席詳細（編集モーダル） ===== */}
       {draft && (
         <>
           <div className="seatOverlay" onClick={closeEdit} />
@@ -264,10 +306,8 @@ function Seats() {
           <div className="seatModal" role="dialog" aria-modal="true">
             <div className="modalTitle">座席管理</div>
 
-            {/* 入店/退店は出さない → 席番号だけ */}
             <div className="seatIdBar">{draft.id}</div>
 
-            {/* 利用人数 */}
             <div className="gridPeople">
               <div className="cell peopleLabel">利用人数</div>
               <div className="cell peopleValue">
@@ -285,7 +325,6 @@ function Seats() {
               <div className="cell peopleUnit">名</div>
             </div>
 
-            {/* ステータス変更（編集でのみ） */}
             <div className="statusBlock">
               <button
                 className="arrowBtn"

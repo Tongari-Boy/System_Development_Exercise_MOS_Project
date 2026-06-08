@@ -246,3 +246,42 @@
     align-items: center;
   }
 }
+
+/* Undoバー */
+.undoBar {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  width: min(420px, calc(100% - 24px));
+  background: #111;
+  color: #fff;
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 14px 30px rgba(0,0,0,0.24);
+  z-index: 7000;
+}
+
+.undoText {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.undoBtn {
+  border: 1px solid rgba(255,255,255,0.25);
+  background: #fff;
+  color: #111;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.undoBtn:hover {
+  opacity: 0.92;
+}

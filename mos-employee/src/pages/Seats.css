@@ -326,3 +326,42 @@
 .floorBackBtn:hover {
   background: rgba(0,0,0,0.04);
 }
+/* ===== フィルタ ===== */
+.seatTools {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.seatFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.seatFilterBtn {
+  padding: 10px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.14);
+  background: #fff;
+  font-weight: 900;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.seatFilterBtn.active {
+  background: rgba(0,0,0,0.10);
+}
+
+.seatCount {
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+.seatEmpty {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.10);
+  border-radius: 16px;
+  padding: 14px;
+  opacity: 0.75;
+}

@@ -22,18 +22,19 @@ function StaffManagement({ onBack }) {
   const [form, setForm] = useState({
     id: '',
     name: '',
-    role: 'employee', // manager | employee | partTime
+    role: 'employee',
     active: true,
+    currentPassword: '',   // ✅ 追加
     password: '',
     passwordConfirm: '',
     allowedUseCases: ['hall', 'kitchen', 'admin'],
   })
   const [error, setError] = useState('')
 
-  // 有効/無効 切替の確認ポップ
+  // 有効/無効切替確認
   const [confirmTarget, setConfirmTarget] = useState(null)
 
-  // パスワード変更確認ポップ
+  // パスワード変更確認
   const [passwordConfirmTarget, setPasswordConfirmTarget] = useState(null)
 
   useEffect(() => {
@@ -86,6 +87,7 @@ function StaffManagement({ onBack }) {
       name: '',
       role: defaultRole,
       active: true,
+      currentPassword: '',
       password: '',
       passwordConfirm: '',
       allowedUseCases: getDefaultUseCasesFromRole(defaultRole),
@@ -98,7 +100,8 @@ function StaffManagement({ onBack }) {
     setMode('edit')
     setForm({
       ...s,
-      password: '',         // 編集時は空欄なら変更なし
+      currentPassword: '',
+      password: '',
       passwordConfirm: '',
     })
     setError('')
@@ -110,7 +113,6 @@ function StaffManagement({ onBack }) {
     setError('')
   }
 
-  // 役職を変えたら IDと用途を自動で反映（追加時のみ）
   const handleRoleChange = (role) => {
     setForm((prev) => {
       if (mode === 'add') {
@@ -121,7 +123,7 @@ function StaffManagement({ onBack }) {
           allowedUseCases: getDefaultUseCasesFromRole(role),
         }
       }
-      // 編集時は role と allowedUseCasesだけ更新（IDは変えない）
+
       return {
         ...prev,
         role,
@@ -137,16 +139,25 @@ function StaffManagement({ onBack }) {
     if (!id) return 'IDが空です'
     if (!name) return '名前を入力してください'
 
-    // 追加時はパスワード必須
+    // 追加時は新規パスワード必須
     if (mode === 'add') {
       if (!form.password) return 'パスワードを入力してください'
       if (form.password.length < 4) return 'パスワードは4文字以上にしてください'
       if (form.password !== form.passwordConfirm) return '確認用パスワードが一致しません'
     }
 
-    // 編集時：入力がある時だけ変更チェック
+    // 編集時：新しいパスワードを入れた時だけ現在のパスワード必須
     if (mode === 'edit' && form.password) {
-      if (form.password.length < 4) return 'パスワードは4文字以上にしてください'
+      if (!form.currentPassword) return '現在のパスワードを入力してください'
+
+      const currentStaff = staff.find((s) => s.id === form.id)
+      if (!currentStaff) return '従業員情報が見つかりません'
+
+      if (currentStaff.password !== form.currentPassword) {
+        return '現在のパスワードが違います'
+      }
+
+      if (form.password.length < 4) return '新しいパスワードは4文字以上にしてください'
       if (form.password !== form.passwordConfirm) return '確認用パスワードが一致しません'
     }
 
@@ -159,7 +170,7 @@ function StaffManagement({ onBack }) {
       name: form.name.trim(),
       role: form.role,
       active: mode === 'add' ? true : !!form.active,
-      password: form.password, // 追加時は必須、編集時は空なら既存を残す
+      password: form.password,
       allowedUseCases: getDefaultUseCasesFromRole(form.role),
     }
   }
@@ -173,7 +184,7 @@ function StaffManagement({ onBack }) {
 
     const payload = buildPayload()
 
-    // 編集時にパスワード変更があるなら確認ポップ
+    // 編集時に新しいパスワードがあるなら確認ポップ
     if (mode === 'edit' && form.password) {
       setPasswordConfirmTarget({ payload })
       return
@@ -320,7 +331,7 @@ function StaffManagement({ onBack }) {
         )}
       </div>
 
-      {/* ===== モーダル（追加/編集 共通） ===== */}
+      {/* モーダル */}
       {open && (
         <>
           <div className="overlay" onClick={closeModal} />
@@ -353,17 +364,11 @@ function StaffManagement({ onBack }) {
                 </select>
               </label>
 
-              {/* IDは自動採番で表示のみ */}
               <label className="label">
                 従業員ID
-                <input
-                  className="input"
-                  value={form.id}
-                  disabled
-                />
+                <input className="input" value={form.id} disabled />
               </label>
 
-              {/* 追加時は状態欄を出さない（自動で有効） */}
               {mode === 'edit' && (
                 <label className="label row">
                   状態
@@ -386,32 +391,73 @@ function StaffManagement({ onBack }) {
                 </label>
               )}
 
-              <label className="label">
-                {mode === 'add' ? 'パスワード' : '新しいパスワード（変更時のみ）'}
-                <input
-                  className="input"
-                  type="password"
-                  value={form.password}
-                  onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
-                  placeholder={mode === 'add' ? '4文字以上' : '空欄なら変更しない'}
-                />
-              </label>
+              {/* 追加時 */}
+              {mode === 'add' && (
+                <>
+                  <label className="label">
+                    パスワード
+                    <input
+                      className="input"
+                      type="password"
+                      value={form.password}
+                      onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
+                      placeholder="4文字以上"
+                    />
+                  </label>
 
-              <label className="label">
-                {mode === 'add' ? 'パスワード（確認）' : '新しいパスワード（確認）'}
-                <input
-                  className="input"
-                  type="password"
-                  value={form.passwordConfirm}
-                  onChange={(e) => setForm((p) => ({ ...p, passwordConfirm: e.target.value }))}
-                  placeholder="再入力"
-                />
-              </label>
+                  <label className="label">
+                    パスワード（確認）
+                    <input
+                      className="input"
+                      type="password"
+                      value={form.passwordConfirm}
+                      onChange={(e) => setForm((p) => ({ ...p, passwordConfirm: e.target.value }))}
+                      placeholder="再入力"
+                    />
+                  </label>
+                </>
+              )}
 
+              {/* 編集時 */}
               {mode === 'edit' && (
-                <div className="hint">
-                  ※ 空欄のまま保存するとパスワードは変更されません
-                </div>
+                <>
+                  <label className="label">
+                    現在のパスワード（変更時のみ）
+                    <input
+                      className="input"
+                      type="password"
+                      value={form.currentPassword}
+                      onChange={(e) => setForm((p) => ({ ...p, currentPassword: e.target.value }))}
+                      placeholder="現在のパスワード"
+                    />
+                  </label>
+
+                  <label className="label">
+                    新しいパスワード（変更時のみ）
+                    <input
+                      className="input"
+                      type="password"
+                      value={form.password}
+                      onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
+                      placeholder="空欄なら変更しない"
+                    />
+                  </label>
+
+                  <label className="label">
+                    新しいパスワード（確認）
+                    <input
+                      className="input"
+                      type="password"
+                      value={form.passwordConfirm}
+                      onChange={(e) => setForm((p) => ({ ...p, passwordConfirm: e.target.value }))}
+                      placeholder="再入力"
+                    />
+                  </label>
+
+                  <div className="hint">
+                    ※ パスワードを変更する時だけ、現在のパスワードを入力してください
+                  </div>
+                </>
               )}
 
               {error && <div className="error">{error}</div>}
@@ -429,7 +475,7 @@ function StaffManagement({ onBack }) {
         </>
       )}
 
-      {/* ===== 有効/無効 切替の確認ポップ ===== */}
+      {/* 有効/無効確認 */}
       {confirmTarget && (
         <>
           <div className="overlay" onClick={cancelToggle} />
@@ -457,7 +503,7 @@ function StaffManagement({ onBack }) {
         </>
       )}
 
-      {/* ===== パスワード変更確認ポップ ===== */}
+      {/* パスワード変更確認 */}
       {passwordConfirmTarget && (
         <>
           <div className="overlay" onClick={cancelPasswordConfirm} />

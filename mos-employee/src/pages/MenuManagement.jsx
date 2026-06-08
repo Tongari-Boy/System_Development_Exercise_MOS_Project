@@ -1,13 +1,33 @@
 import { useEffect, useMemo, useState } from 'react'
 import './MenuManagement.css'
 
-const STORAGE_KEY = 'menuList_v1'
+const STORAGE_KEY = 'menuList_v2'
 
 const defaultMenus = [
-  { id: 'M001', name: '枝豆', price: 380, soldOut: false },
-  { id: 'M002', name: '唐揚げ', price: 580, soldOut: false },
-  { id: 'M003', name: 'ハイボール', price: 450, soldOut: true },
-  { id: 'M004', name: 'レモンサワー', price: 480, soldOut: false },
+  {
+    id: 'M001',
+    name: '枝豆',
+    price: 380,
+    soldOut: false,
+    active: true,
+    tags: ['定番'],
+  },
+  {
+    id: 'M002',
+    name: '唐揚げ',
+    price: 580,
+    soldOut: false,
+    active: true,
+    tags: ['人気'],
+  },
+  {
+    id: 'M003',
+    name: 'ハイボール',
+    price: 450,
+    soldOut: true,
+    active: true,
+    tags: ['定番'],
+  },
 ]
 
 function loadMenus() {
@@ -28,87 +48,63 @@ function saveMenus(list) {
 const yen = (n) => `¥${Number(n || 0).toLocaleString('ja-JP')}`
 
 export default function MenuManagement({ onBack }) {
-  const [tab, setTab] = useState('list') // list | soldout | price
+  const [tab, setTab] = useState('active') // active | inactive | soldout | price
   const [menus, setMenus] = useState(() => loadMenus())
-
-  // 検索（全タブ共通）
   const [query, setQuery] = useState('')
 
-  // 売切タブの切替：売切のみ / 全件
-  const [soldOutOnly, setSoldOutOnly] = useState(true)
-
-  // 追加/編集モーダル
   const [open, setOpen] = useState(false)
-  const [mode, setMode] = useState('add') // add | edit
-  const [form, setForm] = useState({ id: '', name: '', price: 0, soldOut: false })
+  const [mode, setMode] = useState('add')
+  const [form, setForm] = useState({
+    id: '',
+    name: '',
+    price: 0,
+    soldOut: false,
+    active: true,
+    tags: '',
+  })
   const [error, setError] = useState('')
-
-  // 削除確認
   const [deleteTarget, setDeleteTarget] = useState(null)
-
-  // ✅ 売切ON確認
-  const [soldOutTarget, setSoldOutTarget] = useState(null)
-
-  // ✅ 一括売切解除確認
-  const [bulkResetOpen, setBulkResetOpen] = useState(false)
 
   useEffect(() => {
     saveMenus(menus)
   }, [menus])
 
-  // ESCで閉じる
-  useEffect(() => {
-    const onKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        setOpen(false)
-        setDeleteTarget(null)
-        setSoldOutTarget(null)
-        setBulkResetOpen(false)
-        setError('')
-      }
-    }
-    document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [])
-
-  const filteredMenus = useMemo(() => {
+  const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-
-    return menus
-      .filter((m) => {
-        if (!q) return true
-        return (
-          m.id.toLowerCase().includes(q) ||
-          m.name.toLowerCase().includes(q)
-        )
-      })
-      // 表示順：売切は下、名前順
-      .sort((a, b) => {
-        if (a.soldOut !== b.soldOut) return a.soldOut ? 1 : -1
-        return a.name.localeCompare(b.name, 'ja')
-      })
+    return menus.filter((m) => {
+      if (!q) return true
+      return (
+        m.id.toLowerCase().includes(q) ||
+        m.name.toLowerCase().includes(q) ||
+        m.tags.some((t) => t.toLowerCase().includes(q))
+      )
+    })
   }, [menus, query])
 
-  const soldOutView = useMemo(() => {
-    const base = filteredMenus
-    return soldOutOnly ? base.filter((m) => m.soldOut) : base
-  }, [filteredMenus, soldOutOnly])
-
-  const soldOutCount = useMemo(() => {
-    return menus.filter((m) => m.soldOut).length
-  }, [menus])
+  const activeMenus = filtered.filter((m) => m.active)
+  const inactiveMenus = filtered.filter((m) => !m.active)
+  const soldOutMenus = filtered.filter((m) => m.active && m.soldOut)
 
   const openAdd = () => {
-    const nextId = makeNextId(menus)
     setMode('add')
-    setForm({ id: nextId, name: '', price: 0, soldOut: false })
+    setForm({
+      id: makeNextId(menus),
+      name: '',
+      price: 0,
+      soldOut: false,
+      active: true,
+      tags: '',
+    })
     setError('')
     setOpen(true)
   }
 
   const openEdit = (m) => {
     setMode('edit')
-    setForm({ ...m })
+    setForm({
+      ...m,
+      tags: m.tags.join(','),
+    })
     setError('')
     setOpen(true)
   }
@@ -118,88 +114,59 @@ export default function MenuManagement({ onBack }) {
     setError('')
   }
 
-  const validate = () => {
-    const id = form.id.trim()
-    const name = form.name.trim()
-    const price = Number(form.price)
-
-    if (!id) return 'IDが空です'
-    if (!name) return '商品名を入力してください'
-    if (!Number.isFinite(price) || price < 0) return '価格が不正です'
-
-    if (mode === 'add') {
-      const exists = menus.some((m) => m.id.toLowerCase() === id.toLowerCase())
-      if (exists) return '同じIDがすでに存在します'
-    }
-
-    return ''
-  }
-
   const save = () => {
-    const msg = validate()
-    if (msg) {
-      setError(msg)
+    const name = form.name.trim()
+    if (!name) {
+      setError('商品名を入力してください')
       return
     }
 
     const payload = {
-      id: form.id.trim(),
-      name: form.name.trim(),
+      id: form.id,
+      name,
       price: Number(form.price),
       soldOut: !!form.soldOut,
+      active: !!form.active,
+      tags: form.tags
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean),
     }
 
     if (mode === 'add') {
       setMenus((prev) => [payload, ...prev])
     } else {
-      setMenus((prev) => prev.map((m) => (m.id === payload.id ? payload : m)))
+      setMenus((prev) =>
+        prev.map((m) => (m.id === payload.id ? payload : m))
+      )
     }
 
     closeModal()
   }
 
-  // ✅ 売切トグル
-  const requestToggleSoldOut = (menu) => {
-    if (menu.soldOut) {
-      // 売切解除は確認なし
-      setMenus((prev) =>
-        prev.map((m) => (m.id === menu.id ? { ...m, soldOut: false } : m))
-      )
-      return
-    }
-
-    // 売切ONは確認あり
-    setSoldOutTarget(menu)
-  }
-
-  const confirmSoldOut = () => {
-    if (!soldOutTarget) return
+  const toggleSoldOut = (m) => {
     setMenus((prev) =>
-      prev.map((m) => (m.id === soldOutTarget.id ? { ...m, soldOut: true } : m))
-    )
-    setSoldOutTarget(null)
-  }
-
-  const cancelSoldOut = () => setSoldOutTarget(null)
-
-  const updatePrice = (id, price) => {
-    const p = Number(price)
-    if (!Number.isFinite(p) || p < 0) return
-    setMenus((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, price: p } : m))
-    )
-  }
-
-  const bumpPrice = (id, delta) => {
-    setMenus((prev) =>
-      prev.map((m) =>
-        m.id === id ? { ...m, price: Math.max(0, Number(m.price) + delta) } : m
+      prev.map((x) =>
+        x.id === m.id ? { ...x, soldOut: !x.soldOut } : x
       )
     )
   }
 
-  const requestDelete = (m) => setDeleteTarget(m)
-  const cancelDelete = () => setDeleteTarget(null)
+  const disableMenu = (m) => {
+    setMenus((prev) =>
+      prev.map((x) =>
+        x.id === m.id ? { ...x, active: false, soldOut: false } : x
+      )
+    )
+  }
+
+  const enableMenu = (m) => {
+    setMenus((prev) =>
+      prev.map((x) =>
+        x.id === m.id ? { ...x, active: true } : x
+      )
+    )
+  }
 
   const confirmDelete = () => {
     if (!deleteTarget) return
@@ -207,352 +174,122 @@ export default function MenuManagement({ onBack }) {
     setDeleteTarget(null)
   }
 
-  // ✅ 一括売切解除
-  const requestBulkReset = () => setBulkResetOpen(true)
-  const cancelBulkReset = () => setBulkResetOpen(false)
-
-  const confirmBulkReset = () => {
-    setMenus((prev) => prev.map((m) => ({ ...m, soldOut: false })))
-    setBulkResetOpen(false)
-  }
+  const list =
+    tab === 'active'
+      ? activeMenus
+      : tab === 'inactive'
+      ? inactiveMenus
+      : tab === 'soldout'
+      ? soldOutMenus
+      : activeMenus
 
   return (
     <section className="menuPage">
-      {/* ヘッダー */}
       <div className="menuHeader">
-        <div>
-          <h2 className="menuTitle">メニュー管理</h2>
-          <div className="menuSub">売切でも表示（A1）／売切は注文不可の想定</div>
-        </div>
-
+        <h2 className="menuTitle">メニュー管理</h2>
         <div className="menuHeaderActions">
-          <button className="btn ghost" type="button" onClick={onBack}>
-            戻る
-          </button>
-          <button className="btn primary" type="button" onClick={openAdd}>
-            ＋ 商品追加
-          </button>
+          <button className="btn ghost" onClick={onBack}>戻る</button>
+          <button className="btn primary" onClick={openAdd}>＋ 追加</button>
         </div>
       </div>
 
-      {/* タブ */}
       <div className="tabs">
-        <button
-          className={`tab ${tab === 'list' ? 'active' : ''}`}
-          onClick={() => setTab('list')}
-          type="button"
-        >
-          商品一覧
-        </button>
-        <button
-          className={`tab ${tab === 'soldout' ? 'active' : ''}`}
-          onClick={() => setTab('soldout')}
-          type="button"
-        >
-          売切
-        </button>
-        <button
-          className={`tab ${tab === 'price' ? 'active' : ''}`}
-          onClick={() => setTab('price')}
-          type="button"
-        >
-          価格
-        </button>
+        <button className={tab === 'active' ? 'tab active' : 'tab'} onClick={() => setTab('active')}>有効一覧</button>
+        <button className={tab === 'inactive' ? 'tab active' : 'tab'} onClick={() => setTab('inactive')}>無効一覧</button>
+        <button className={tab === 'soldout' ? 'tab active' : 'tab'} onClick={() => setTab('soldout')}>売切</button>
+        <button className={tab === 'price' ? 'tab active' : 'tab'} onClick={() => setTab('price')}>価格</button>
       </div>
 
-      {/* 検索 */}
-      <div className="controls">
-        <input
-          className="input"
-          value={query}
-          placeholder="検索（商品名 / ID）"
-          onChange={(e) => setQuery(e.target.value)}
-        />
+      <input
+        className="input"
+        placeholder="検索（商品名・タグ）"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+      />
 
-        {tab === 'soldout' && (
-          <div className="soldoutToolbar">
-            <div className="seg2">
-              <button
-                type="button"
-                className={`segBtn ${soldOutOnly ? 'active' : ''}`}
-                onClick={() => setSoldOutOnly(true)}
-              >
-                売切のみ
-              </button>
-              <button
-                type="button"
-                className={`segBtn ${!soldOutOnly ? 'active' : ''}`}
-                onClick={() => setSoldOutOnly(false)}
-              >
-                全件
-              </button>
+      <div className="list">
+        {list.map((m) => (
+          <div key={m.id} className="row">
+            <div className="main">
+              <div className="nameLine">
+                <span className="name">{m.name}</span>
+                <div className="tags">
+                  {m.tags.map((t, i) => (
+                    <span key={i} className="tag">{t}</span>
+                  ))}
+                </div>
+              </div>
+              <div className="meta">
+                <span className="chip">{m.id}</span>
+                <span className="chip">{yen(m.price)}</span>
+                {m.soldOut && <span className="badge">売切</span>}
+              </div>
             </div>
 
-            <button
-              type="button"
-              className="btn warn"
-              onClick={requestBulkReset}
-              disabled={soldOutCount === 0}
-            >
-              一括売切解除
-            </button>
+            <div className="actions">
+              {tab !== 'price' && (
+                <button className="btn small" onClick={() => openEdit(m)}>編集</button>
+              )}
+
+              {tab === 'active' && (
+                <>
+                  <button className="btn small" onClick={() => toggleSoldOut(m)}>
+                    {m.soldOut ? '売切解除' : '売切'}
+                  </button>
+                  <button className="btn small warn" onClick={() => disableMenu(m)}>
+                    無効化
+                  </button>
+                </>
+              )}
+
+              {tab === 'inactive' && (
+                <>
+                  <button className="btn small primary" onClick={() => enableMenu(m)}>
+                    再有効化
+                  </button>
+                  <button className="btn small warn" onClick={() => setDeleteTarget(m)}>
+                    削除
+                  </button>
+                </>
+              )}
+            </div>
           </div>
-        )}
+        ))}
       </div>
 
-      {/* コンテンツ */}
-      {tab === 'list' && (
-        <div className="list">
-          {filteredMenus.map((m) => (
-            <div key={m.id} className={`row ${m.soldOut ? 'soldOut' : ''}`}>
-              <div className="main">
-                <div className="nameLine">
-                  <span className="name">{m.name}</span>
-                  {m.soldOut && <span className="badge">売切</span>}
-                </div>
-                <div className="meta">
-                  <span className="chip">{m.id}</span>
-                  <span className="chip">{yen(m.price)}</span>
-                </div>
-              </div>
-
-              <div className="actions">
-                <button
-                  className={`btn small ${m.soldOut ? 'primary' : ''}`}
-                  type="button"
-                  onClick={() => requestToggleSoldOut(m)}
-                >
-                  {m.soldOut ? '売切解除' : '売切'}
-                </button>
-                <button className="btn small" type="button" onClick={() => openEdit(m)}>
-                  編集
-                </button>
-                <button className="btn small warn" type="button" onClick={() => requestDelete(m)}>
-                  削除
-                </button>
-              </div>
-            </div>
-          ))}
-
-          {filteredMenus.length === 0 && (
-            <div className="empty">該当する商品がありません。</div>
-          )}
-        </div>
-      )}
-
-      {tab === 'soldout' && (
-        <div className="list">
-          {soldOutView.map((m) => (
-            <div key={m.id} className={`row ${m.soldOut ? 'soldOut' : ''}`}>
-              <div className="main">
-                <div className="nameLine">
-                  <span className="name">{m.name}</span>
-                  {m.soldOut && <span className="badge">売切</span>}
-                </div>
-                <div className="meta">
-                  <span className="chip">{m.id}</span>
-                  <span className="chip">{yen(m.price)}</span>
-                </div>
-              </div>
-
-              <div className="actions">
-                <button
-                  className={`btn small ${m.soldOut ? 'primary' : ''}`}
-                  type="button"
-                  onClick={() => requestToggleSoldOut(m)}
-                >
-                  {m.soldOut ? '売切解除' : '売切'}
-                </button>
-              </div>
-            </div>
-          ))}
-
-          {soldOutView.length === 0 && (
-            <div className="empty">
-              {soldOutOnly ? '売切の商品がありません。' : '該当する商品がありません。'}
-            </div>
-          )}
-        </div>
-      )}
-
-      {tab === 'price' && (
-        <div className="list">
-          {filteredMenus.map((m) => (
-            <div key={m.id} className={`row ${m.soldOut ? 'soldOut' : ''}`}>
-              <div className="main">
-                <div className="nameLine">
-                  <span className="name">{m.name}</span>
-                  {m.soldOut && <span className="badge">売切</span>}
-                </div>
-                <div className="meta">
-                  <span className="chip">{m.id}</span>
-                </div>
-              </div>
-
-              <div className="priceActions">
-                <button className="btn small" type="button" onClick={() => bumpPrice(m.id, -100)}>
-                  -100
-                </button>
-                <button className="btn small" type="button" onClick={() => bumpPrice(m.id, -50)}>
-                  -50
-                </button>
-
-                <input
-                  className="priceInput"
-                  type="number"
-                  min="0"
-                  value={m.price}
-                  onChange={(e) => updatePrice(m.id, e.target.value)}
-                />
-
-                <button className="btn small" type="button" onClick={() => bumpPrice(m.id, 50)}>
-                  +50
-                </button>
-                <button className="btn small" type="button" onClick={() => bumpPrice(m.id, 100)}>
-                  +100
-                </button>
-              </div>
-            </div>
-          ))}
-
-          {filteredMenus.length === 0 && (
-            <div className="empty">該当する商品がありません。</div>
-          )}
-        </div>
-      )}
-
-      {/* 追加/編集モーダル */}
       {open && (
         <>
           <div className="overlay" onClick={closeModal} />
-          <div className="modal" role="dialog" aria-modal="true">
-            <div className="modalTitle">{mode === 'add' ? '商品追加' : '商品編集'}</div>
+          <div className="modal">
+            <h3>{mode === 'add' ? '商品追加' : '商品編集'}</h3>
 
-            <div className="form">
-              <label className="label">
-                商品名
-                <input
-                  className="input"
-                  value={form.name}
-                  onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                  placeholder="例：唐揚げ"
-                />
-              </label>
+            <input className="input" value={form.name} placeholder="商品名"
+              onChange={(e) => setForm({ ...form, name: e.target.value })} />
 
-              <label className="label">
-                ID
-                <input
-                  className="input"
-                  value={form.id}
-                  onChange={(e) => setForm((p) => ({ ...p, id: e.target.value }))}
-                  disabled={mode === 'edit'}
-                />
-              </label>
+            <input className="input" type="number" value={form.price} placeholder="価格"
+              onChange={(e) => setForm({ ...form, price: e.target.value })} />
 
-              <label className="label">
-                価格（円）
-                <input
-                  className="input"
-                  type="number"
-                  min="0"
-                  value={form.price}
-                  onChange={(e) => setForm((p) => ({ ...p, price: e.target.value }))}
-                />
-              </label>
+            <input className="input" value={form.tags} placeholder="タグ（,区切り）"
+              onChange={(e) => setForm({ ...form, tags: e.target.value })} />
 
-              <label className="label row">
-                売切
-                <div className="toggle">
-                  <button
-                    type="button"
-                    className={`toggleBtn ${form.soldOut ? 'active' : ''}`}
-                    onClick={() => setForm((p) => ({ ...p, soldOut: true }))}
-                  >
-                    ON
-                  </button>
-                  <button
-                    type="button"
-                    className={`toggleBtn ${!form.soldOut ? 'active' : ''}`}
-                    onClick={() => setForm((p) => ({ ...p, soldOut: false }))}
-                  >
-                    OFF
-                  </button>
-                </div>
-              </label>
-
-              {error && <div className="error">{error}</div>}
-            </div>
+            {error && <div className="error">{error}</div>}
 
             <div className="modalActions">
-              <button className="btn ghost" type="button" onClick={closeModal}>
-                キャンセル
-              </button>
-              <button className="btn primary" type="button" onClick={save}>
-                保存
-              </button>
+              <button className="btn ghost" onClick={closeModal}>キャンセル</button>
+              <button className="btn primary" onClick={save}>保存</button>
             </div>
           </div>
         </>
       )}
 
-      {/* 削除確認 */}
       {deleteTarget && (
         <>
-          <div className="overlay" onClick={cancelDelete} />
-          <div className="modal" role="dialog" aria-modal="true">
-            <div className="modalTitle">削除確認</div>
-            <p className="confirmText">
-              <strong>{deleteTarget.name}</strong>（{deleteTarget.id}）を削除しますか？
-            </p>
+          <div className="overlay" onClick={() => setDeleteTarget(null)} />
+          <div className="modal">
+            <p><strong>{deleteTarget.name}</strong> を完全に削除しますか？</p>
             <div className="modalActions">
-              <button className="btn ghost" type="button" onClick={cancelDelete}>
-                キャンセル
-              </button>
-              <button className="btn warn" type="button" onClick={confirmDelete}>
-                削除
-              </button>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* ✅ 売切ON確認 */}
-      {soldOutTarget && (
-        <>
-          <div className="overlay" onClick={cancelSoldOut} />
-          <div className="modal" role="dialog" aria-modal="true">
-            <div className="modalTitle">確認</div>
-            <p className="confirmText">
-              <strong>{soldOutTarget.name}</strong> を売切にしますか？
-            </p>
-            <div className="modalActions">
-              <button className="btn ghost" type="button" onClick={cancelSoldOut}>
-                キャンセル
-              </button>
-              <button className="btn warn" type="button" onClick={confirmSoldOut}>
-                売切にする
-              </button>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* ✅ 一括売切解除確認 */}
-      {bulkResetOpen && (
-        <>
-          <div className="overlay" onClick={cancelBulkReset} />
-          <div className="modal" role="dialog" aria-modal="true">
-            <div className="modalTitle">確認</div>
-            <p className="confirmText">
-              売切中の商品をすべて解除しますか？
-            </p>
-            <div className="modalActions">
-              <button className="btn ghost" type="button" onClick={cancelBulkReset}>
-                キャンセル
-              </button>
-              <button className="btn primary" type="button" onClick={confirmBulkReset}>
-                一括解除する
-              </button>
+              <button className="btn ghost" onClick={() => setDeleteTarget(null)}>キャンセル</button>
+              <button className="btn warn" onClick={confirmDelete}>削除</button>
             </div>
           </div>
         </>
@@ -561,13 +298,11 @@ export default function MenuManagement({ onBack }) {
   )
 }
 
-function makeNextId(menus) {
-  const nums = menus
+function makeNextId(list) {
+  const nums = list
     .map((m) => m.id)
-    .filter((id) => /^M\d{3}$/i.test(id))
+    .filter((id) => /^M\d+$/.test(id))
     .map((id) => Number(id.slice(1)))
-    .filter((n) => Number.isFinite(n))
-
   const next = (nums.length ? Math.max(...nums) : 0) + 1
   return `M${String(next).padStart(3, '0')}`
 }

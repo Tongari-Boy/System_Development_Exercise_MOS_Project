@@ -10,9 +10,9 @@ const initialOrders = [
     time: '12:00',
     status: '未確認',
     items: [
-      { name: '枝豆', qty: 1 },
-      { name: '唐揚げ', qty: 2 },
-      { name: 'ハイボール', qty: 2 },
+      { name: '枝豆', qty: 1, cooked: false },
+      { name: '唐揚げ', qty: 2, cooked: false },
+      { name: 'ハイボール', qty: 2, cooked: false },
     ],
   },
   {
@@ -21,8 +21,8 @@ const initialOrders = [
     time: '13:00',
     status: '調理中',
     items: [
-      { name: 'ポテト', qty: 1 },
-      { name: 'レモンサワー', qty: 2 },
+      { name: 'ポテト', qty: 1, cooked: false },
+      { name: 'レモンサワー', qty: 2, cooked: false },
     ],
   },
   {
@@ -31,22 +31,21 @@ const initialOrders = [
     time: '13:45',
     status: '提供待ち',
     items: [
-      { name: '刺身盛り', qty: 1 },
-      { name: '日本酒', qty: 1 },
+      { name: '刺身盛り', qty: 1, cooked: true },
+      { name: '日本酒', qty: 1, cooked: true },
     ],
   },
   {
     id: 'o4',
     table: 'C2',
     time: '14:10',
-    status: '未確認',
+    status: '完了',
     items: [
-      { name: 'お茶', qty: 2 },
+      { name: 'お茶', qty: 2, cooked: true },
     ],
   },
 ]
 
-// フィルタ候補
 const FILTERS = [
   { key: 'all', label: '全件' },
   { key: '未確認', label: '未確認' },
@@ -57,16 +56,9 @@ const FILTERS = [
 
 function Orders() {
   const [orders, setOrders] = useState(initialOrders)
-
-  // フィルタ/検索
   const [statusFilter, setStatusFilter] = useState('all')
   const [query, setQuery] = useState('')
-
-  // ページング
   const [page, setPage] = useState(1)
-
-  // 完了確認ダイアログ用
-  const [confirmTarget, setConfirmTarget] = useState(null)
 
   // 並び順：未確認 → 調理中 → 提供待ち → 完了
   const sortedOrders = useMemo(() => {
@@ -76,81 +68,99 @@ function Orders() {
     )
   }, [orders])
 
-  // ✅ 未確認件数（全体）
+  // 未確認件数（全体）
   const urgentCount = useMemo(
-    () => orders.filter(o => o.status === '未確認').length,
+    () => orders.filter((o) => o.status === '未確認').length,
     [orders]
   )
 
-  // ✅ フィルタ + 検索（卓番号 or 商品名）
+  // フィルタ + 検索（卓番号 or 商品名）
   const filteredOrders = useMemo(() => {
     const q = query.trim().toLowerCase()
 
-    return sortedOrders.filter(o => {
-      // フィルタ
+    return sortedOrders.filter((o) => {
       if (statusFilter !== 'all' && o.status !== statusFilter) return false
 
-      // 検索：卓番号 / 商品名（どちらか含めばOK）
       if (!q) return true
+
       const hitTable = o.table.toLowerCase().includes(q)
-      const hitItems = o.items.some(it => it.name.toLowerCase().includes(q))
+      const hitItems = o.items.some((it) => it.name.toLowerCase().includes(q))
+
       return hitTable || hitItems
     })
   }, [sortedOrders, statusFilter, query])
 
-  // ✅ 表示件数（フィルタ・検索に連動）
   const visibleCount = filteredOrders.length
   const totalCount = orders.length
 
-  // ページ数
   const totalPages = Math.max(1, Math.ceil(visibleCount / PER_PAGE))
 
-  // フィルタ/検索で件数が変わって page がはみ出たら調整
   useEffect(() => {
     if (page > totalPages) setPage(totalPages)
   }, [page, totalPages])
 
-  // ページ単位の表示
   const pageOrders = useMemo(() => {
     const start = (page - 1) * PER_PAGE
     return filteredOrders.slice(start, start + PER_PAGE)
   }, [filteredOrders, page])
 
-  // ✅ 「確認」ボタン：未確認 → 調理中
-  const markCooking = (id) => {
-    setOrders(prev =>
-      prev.map(o => (o.id === id && o.status === '未確認')
-        ? { ...o, status: '調理中' }
-        : o
-      ))
+  // 未確認 → 調理中
+  const startCooking = (id) => {
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === id && o.status === '未確認'
+          ? { ...o, status: '調理中' }
+          : o
+      )
+    )
   }
 
-  // 完了確認ダイアログ
-  const requestComplete = (order) => {
-    setConfirmTarget(order)
+  // 料理ごとの調理完了チェック
+  const toggleCooked = (orderId, itemIndex) => {
+    setOrders((prev) =>
+      prev.map((o) => {
+        if (o.id !== orderId) return o
+        if (o.status !== '調理中') return o
+
+        const nextItems = o.items.map((item, idx) =>
+          idx === itemIndex
+            ? { ...item, cooked: !item.cooked }
+            : item
+        )
+
+        const allCooked =
+          nextItems.length > 0 && nextItems.every((item) => item.cooked)
+
+        return {
+          ...o,
+          items: nextItems,
+          status: allCooked ? '提供待ち' : '調理中',
+        }
+      })
+    )
   }
 
-  // 確認OK → 注文を削除（=消える → 次が詰まって上に来る）
-  const confirmComplete = () => {
-    if (!confirmTarget) return
-    setOrders(prev => prev.filter(o => o.id !== confirmTarget.id))
-    setConfirmTarget(null)
+  // 提供待ち → 完了
+  const completeServing = (id) => {
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === id && o.status === '提供待ち'
+          ? { ...o, status: '完了' }
+          : o
+      )
+    )
   }
-
-  const cancelComplete = () => setConfirmTarget(null)
 
   return (
     <section className="orders">
       <header className="ordersHeader">
         <div className="ordersHeaderLeft">
           <h2 className="ordersTitle">注文管理</h2>
-          {/* 件数はフィルタ/検索に連動 */}
           <div className="ordersMeta">
             表示 {visibleCount} 件 / 全 {totalCount} 件
           </div>
         </div>
 
-        {/* 未確認件数（全体） */}
         {urgentCount > 0 && (
           <div className="urgentCount">
             未確認 <strong>{urgentCount}</strong> 件
@@ -158,15 +168,18 @@ function Orders() {
         )}
       </header>
 
-      {/* ✅ フィルタ + 検索 */}
+      {/* フィルタ + 検索 */}
       <div className="ordersTools">
         <div className="ordersFilters">
-          {FILTERS.map(f => (
+          {FILTERS.map((f) => (
             <button
               key={f.key}
               type="button"
               className={`filterBtn ${statusFilter === f.key ? 'active' : ''}`}
-              onClick={() => { setStatusFilter(f.key); setPage(1) }}
+              onClick={() => {
+                setStatusFilter(f.key)
+                setPage(1)
+              }}
             >
               {f.label}
             </button>
@@ -176,19 +189,23 @@ function Orders() {
         <input
           className="ordersSearch"
           value={query}
-          onChange={(e) => { setQuery(e.target.value); setPage(1) }}
+          onChange={(e) => {
+            setQuery(e.target.value)
+            setPage(1)
+          }}
           placeholder="検索（卓番号 / 商品名）"
         />
       </div>
 
       <div className="ordersList">
-        {pageOrders.map(o => (
+        {pageOrders.map((o) => (
           <article key={o.id} className={`orderCard status-${o.status}`}>
             <div className="orderTop">
               <div className="orderMain">
                 <div className="orderTable">{o.table}</div>
                 <div className="orderTime">{o.time}</div>
               </div>
+
               <span className={`statusBadge status-${o.status}`}>
                 {o.status}
               </span>
@@ -196,32 +213,61 @@ function Orders() {
 
             <ul className="itemList">
               {o.items.map((it, idx) => (
-                <li key={idx} className="itemRow">
-                  <span className="itemName">{it.name}</span>
+                <li
+                  key={idx}
+                  className={`itemRow ${it.cooked ? 'done' : ''}`}
+                >
+                  <div className="itemLeft">
+                    <button
+                      type="button"
+                      className={`cookCheck ${it.cooked ? 'checked' : ''}`}
+                      onClick={() => toggleCooked(o.id, idx)}
+                      disabled={o.status !== '調理中'}
+                      title={o.status !== '調理中' ? '調理中のときだけ操作できます' : ''}
+                    >
+                      {it.cooked ? '✓' : ''}
+                    </button>
+
+                    <span className="itemName">{it.name}</span>
+                  </div>
+
                   <span className="itemQty">× {it.qty}</span>
                 </li>
               ))}
             </ul>
 
             <div className="orderActions">
-              {/* ✅ 確認：未確認→調理中 */}
-              <button
-                className="ghostBtn2"
-                type="button"
-                onClick={() => markCooking(o.id)}
-                disabled={o.status !== '未確認'}
-                title={o.status !== '未確認' ? '未確認のときだけ操作できます' : ''}
-              >
-                確認
-              </button>
+              {o.status === '未確認' && (
+                <button
+                  className="primaryBtn2"
+                  type="button"
+                  onClick={() => startCooking(o.id)}
+                >
+                  確認
+                </button>
+              )}
 
-              <button
-                className="primaryBtn2"
-                type="button"
-                onClick={() => requestComplete(o)}
-              >
-                完了
-              </button>
+              {o.status === '調理中' && (
+                <button className="waitingBtn" type="button" disabled>
+                  全料理の調理完了で提供待ちになります
+                </button>
+              )}
+
+              {o.status === '提供待ち' && (
+                <button
+                  className="primaryBtn2"
+                  type="button"
+                  onClick={() => completeServing(o.id)}
+                >
+                  提供完了
+                </button>
+              )}
+
+              {o.status === '完了' && (
+                <button className="doneBtn" type="button" disabled>
+                  完了済み
+                </button>
+              )}
             </div>
           </article>
         ))}
@@ -237,7 +283,7 @@ function Orders() {
       <nav className="pager" aria-label="ページ切り替え">
         <button
           className="pagerBtn"
-          onClick={() => setPage(p => Math.max(1, p - 1))}
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={page === 1}
           type="button"
         >
@@ -245,7 +291,7 @@ function Orders() {
         </button>
 
         <div className="pagerNums">
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
             <button
               key={n}
               className={`pagerNum ${n === page ? 'active' : ''}`}
@@ -259,37 +305,13 @@ function Orders() {
 
         <button
           className="pagerBtn"
-          onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+          onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
           disabled={page === totalPages}
           type="button"
         >
           →
         </button>
       </nav>
-
-      {/* 完了確認ダイアログ */}
-      {confirmTarget && (
-        <>
-          <div className="confirmOverlay" onClick={cancelComplete} />
-          <div className="confirmModal" role="dialog" aria-modal="true">
-            <h3 className="confirmTitle">完了にしますか？</h3>
-            <p className="confirmText">
-              <strong>{confirmTarget.table}</strong>（{confirmTarget.time}）の注文を完了にします。
-              <br />
-              完了にすると一覧から消えます。
-            </p>
-
-            <div className="confirmActions">
-              <button className="ghostBtn2" onClick={cancelComplete} type="button">
-                キャンセル
-              </button>
-              <button className="dangerBtn" onClick={confirmComplete} type="button">
-                OK（完了）
-              </button>
-            </div>
-          </div>
-        </>
-      )}
     </section>
   )
 }
