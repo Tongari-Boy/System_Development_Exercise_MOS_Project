@@ -1,0 +1,181 @@
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.blackBanner {
+  background: #111;
+  color: #fff;
+  padding: 18px 20px;
+}
+
+.blackBanner h1 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: 0.04em;
+}
+
+.loginCard {
+  width: min(360px, calc(100% - 32px));
+  margin: 64px auto;
+  padding: 22px;
+  background: var(--card);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--line);
+  display: grid;
+  gap: 12px;
+}
+
+.loginTitle {
+  font-weight: 800;
+  font-size: 18px;
+}
+
+.inputGroup input,
+.select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid rgba(0,0,0,0.18);
+  border-radius: 10px;
+  font-size: 16px;
+  background: #fff;
+}
+
+.primaryBtn {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 800;
+  background: var(--accent);
+  cursor: pointer;
+  transition: opacity .2s, transform .05s;
+}
+
+.primaryBtn:hover {
+  opacity: .92;
+}
+
+.primaryBtn:active {
+  transform: translateY(1px);
+}
+
+.primaryBtn:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+.helpText {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.errorBanner {
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(255,59,48,0.12);
+  border: 1px solid rgba(255,59,48,0.20);
+  font-weight: 900;
+  font-size: 13px;
+}
+
+.shellPage {
+  padding: 16px;
+}
+
+.shellHeader {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  margin: -16px -16px 16px;
+  padding: 10px 12px;
+  background: #f2f2f2;
+  border-bottom: 1px solid rgba(0,0,0,0.10);
+}
+
+.shellHeaderRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+  gap: 12px;
+}
+
+.shellHeaderLeft {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.shellHeaderCenter {
+  text-align: center;
+}
+
+.shellHeaderRight {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.shellShop {
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.shellTitle {
+  margin-top: 4px;
+  font-size: 13px;
+  opacity: 0.75;
+  font-weight: 700;
+}
+
+.shellUser {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.page {
+  padding: 10px 0;
+}
+
+.gridCards {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.primaryCard {
+  text-align: left;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,0.10);
+  background: #fff;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.06);
+  cursor: pointer;
+}
+
+.btn {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.14);
+  background: #fff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.btn.primary {
+  background: #2f80ed;
+  border-color: transparent;
+  color: #fff;
+}
+
+.btn.ghost {
+  background: #fff;
+}
+
+.btn.warn {
+  background: rgba(255, 59, 48, 0.12);
+  border-color: rgba(255, 59, 48, 0.18);
+}
