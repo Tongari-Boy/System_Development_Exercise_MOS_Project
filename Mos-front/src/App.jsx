@@ -1,56 +1,17 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import './App.css'
-
-function Home() {
-  return (
-    <>
-      <div className="page-title">
-        <h1>居酒屋みどり亭</h1>
-      </div>
-
-      <div className="welcome-text">
-        <h1>いらっしゃいませ</h1>
-        <h2>ボタンをお選びください</h2>
-      </div>
-
-      <div className="button-row">
-        <Link to="/customer" className="nav-button customer-button">
-          お客様用画面へ移行
-        </Link>
-      </div>
-
-      <Link to="/staff" className="nav-button staff-button">
-        スタッフ用画面
-      </Link>
-    </>
-  )
-}
-
-function CustomerPage() {
-  return (
-    <div className="page-content">
-      <h2>お客様用画面</h2>
-      <p>こちらからメニューやご注文の確認・操作ができます。</p>
-
-      <Link to="/" className="nav-button back-button">
-        トップへ戻る
-      </Link>
-    </div>
-  )
-}
-
-function StaffPage() {
-  return (
-    <div className="page-content">
-      <h2>スタッフ用画面</h2>
-      <p>スタッフ専用の管理機能へアクセスします。</p>
-
-      <Link to="/" className="nav-button back-button">
-        トップへ戻る
-      </Link>
-    </div>
-  )
-}
+import Home from './pages/Home'
+import CourseSelectPage from './pages/CourseSelectPage'
+import MenuPage from './pages/MenuPage'
+import CategoryMenu from './pages/CategoryMenu'
+import HistoryPage from './pages/HistoryPage'
+import OrderConfirmPage from './pages/OrderConfirmPage'
+import OrderSendPage from './pages/OrderSendPage'
+import CallStaffPage from './pages/CallStaffPage'
+import CallingStaffPage from './pages/CallingStaffPage'
+import StaffPage from './pages/StaffPage'
+import CheckoutPage from './pages/CheckoutPage'
+import ProductDetail from './pages/ProductDetail'
 
 function App() {
   return (
@@ -59,7 +20,19 @@ function App() {
         <main className="home-section">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/customer" element={<CustomerPage />} />
+            <Route path="/home" element={<Navigate to="/" replace />} />
+            <Route path="/course" element={<CourseSelectPage />} />
+            <Route path="/about" element={<Navigate to="/menu" replace />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/menu" element={<CategoryMenu />} />
+            <Route path="/menu/categories" element={<Navigate to="/menu" replace />} />
+            <Route path="/menu/item/:id" element={<ProductDetail />} />
+            <Route path="/menu/c/:category" element={<MenuPage />} />
+            <Route path="/history" element={<HistoryPage />} />
+            <Route path="/order-confirm" element={<OrderConfirmPage />} />
+            <Route path="/order-send" element={<OrderSendPage />} />
+            <Route path="/call-staff" element={<CallStaffPage />} />
+            <Route path="/call-staff-calling" element={<CallingStaffPage />} />
             <Route path="/staff" element={<StaffPage />} />
           </Routes>
         </main>
