@@ -7,20 +7,14 @@ import useStayRemaining from '../hooks/useStayRemaining'
 import '../App.css'
 import '../menu.css'
 import '../menubook.css'
-import freeImage from '../assets/無料備品.jpg'
-import yakitoriImage from '../assets/焼き鳥.jpeg'
-import speedImage from '../assets/スピード.jpg'
-import riceImage from '../assets/ご飯もの.jpg'
-import drinkImage from '../assets/ドリンク.jpg'
-import dessertImage from '../assets/デザート.jpg'
 
 const categories = [
-  { id: 'yakitori', label: '焼き鳥',     image: yakitoriImage },
-  { id: 'speed',    label: 'スピード',   image: speedImage },
-  { id: 'rice',     label: 'ごはんもの', image: riceImage },
-  { id: 'drink',    label: 'ドリンク',   image: drinkImage },
-  { id: 'dessert',  label: 'デザート',   image: dessertImage },
-  { id: 'free',     label: '無料備品',   image: freeImage }
+  { id: 'yakitori', label: '焼き鳥'     },
+  { id: 'speed',    label: 'スピード'   },
+  { id: 'rice',     label: 'ごはんもの' },
+  { id: 'drink',    label: 'ドリンク'   },
+  { id: 'dessert',  label: 'デザート'   },
+  { id: 'free',     label: '無料備品'   }
 ]
 
 // ── Art Deco Sunburst SVG ─────────────────────────────────
