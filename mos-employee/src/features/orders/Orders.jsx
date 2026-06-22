@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useCallback, useEffect, useMemo, useState } from 'react'
 import './Orders.css'
 
 import {
   loadOrders,
-  saveOrders,
   searchOrders,
 } from '../../domain/orders/orderDb'
+import { orderApi } from '../../services/api.js'
 
 const PER_PAGE = 8
 
@@ -18,14 +18,28 @@ const FILTERS = [
 ]
 
 function Orders() {
-  const [orders, setOrders] = useState(() => loadOrders())
+  const [orders, setOrders] = useState([])
   const [statusFilter, setStatusFilter] = useState('all')
   const [query, setQuery] = useState('')
   const [page, setPage] = useState(1)
+  const [loading, setLoading] = useState(true)
+
+  const fetchOrders = useCallback(async () => {
+    try {
+      const data = await loadOrders()
+      setOrders(data)
+    } catch (e) {
+      console.error('注文取得エラー:', e)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
-    saveOrders(orders)
-  }, [orders])
+    fetchOrders()
+    const timer = setInterval(fetchOrders, 30_000)
+    return () => clearInterval(timer)
+  }, [fetchOrders])
 
   const urgentCount = useMemo(
     () => orders.filter((o) => o.status === '未確認').length,
@@ -40,26 +54,23 @@ function Orders() {
   const visibleCount = filteredOrders.length
   const totalCount = orders.length
   const totalPages = Math.max(1, Math.ceil(visibleCount / PER_PAGE))
-
-  // 描画用ページをclamp
-  const currentPage = Math.min(page,totalPages)
+  const currentPage = Math.min(page, totalPages)
 
   const pageOrders = useMemo(() => {
-    const start = (currentPage -1 ) * PER_PAGE
-    return filteredOrders.slice(start,start+PER_PAGE)
-  },[filteredOrders,currentPage])
+    const start = (currentPage - 1) * PER_PAGE
+    return filteredOrders.slice(start, start + PER_PAGE)
+  }, [filteredOrders, currentPage])
 
-  const startCooking = (id) => {
-    setOrders((prev) =>
-      prev.map((o) =>
-        o.id === id && o.status === '未確認'
-          ? { ...o, status: '調理中' }
-          : o
-      )
-    )
+  const startCooking = async (o) => {
+    try {
+      const updated = await orderApi.startCooking(o._numId)
+      setOrders((prev) => prev.map((x) => (x.id === o.id ? updated : x)))
+    } catch (e) {
+      console.error('調理開始エラー:', e)
+    }
   }
 
-  const toggleCooked = (orderId, itemIndex) => {
+  const toggleCooked = async (orderId, itemIndex) => {
     setOrders((prev) =>
       prev.map((o) => {
         if (o.id !== orderId) return o
@@ -68,26 +79,30 @@ function Orders() {
         const nextItems = o.items.map((item, idx) =>
           idx === itemIndex ? { ...item, cooked: !item.cooked } : item
         )
-
         const allCooked = nextItems.length > 0 && nextItems.every((item) => item.cooked)
 
-        return {
-          ...o,
-          items: nextItems,
-          status: allCooked ? '提供待ち' : '調理中',
+        if (allCooked) {
+          orderApi.markReady(o._numId)
+            .then((updated) => setOrders((prev2) => prev2.map((x) => (x.id === o.id ? updated : x))))
+            .catch((e) => console.error('提供待ち更新エラー:', e))
         }
+
+        return { ...o, items: nextItems, status: allCooked ? '提供待ち' : '調理中' }
       })
     )
   }
 
-  const completeServing = (id) => {
-    setOrders((prev) =>
-      prev.map((o) =>
-        o.id === id && o.status === '提供待ち'
-          ? { ...o, status: '完了' }
-          : o
-      )
-    )
+  const completeServing = async (o) => {
+    try {
+      const updated = await orderApi.markServed(o._numId)
+      setOrders((prev) => prev.map((x) => (x.id === o.id ? updated : x)))
+    } catch (e) {
+      console.error('提供完了エラー:', e)
+    }
+  }
+
+  if (loading) {
+    return <section className="orders"><p style={{ padding: '2rem' }}>読み込み中…</p></section>
   }
 
   return (
@@ -100,11 +115,14 @@ function Orders() {
           </div>
         </div>
 
-        {urgentCount > 0 && (
-          <div className="urgentCount">
-            未確認 <strong>{urgentCount}</strong> 件
-          </div>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {urgentCount > 0 && (
+            <div className="urgentCount">
+              未確認 <strong>{urgentCount}</strong> 件
+            </div>
+          )}
+          <button type="button" className="filterBtn" onClick={fetchOrders}>更新</button>
+        </div>
       </header>
 
       <div className="ordersTools">
@@ -171,7 +189,7 @@ function Orders() {
 
             <div className="orderActions">
               {o.status === '未確認' && (
-                <button className="primaryBtn2" type="button" onClick={() => startCooking(o.id)}>
+                <button className="primaryBtn2" type="button" onClick={() => startCooking(o)}>
                   確認
                 </button>
               )}
@@ -183,7 +201,7 @@ function Orders() {
               )}
 
               {o.status === '提供待ち' && (
-                <button className="primaryBtn2" type="button" onClick={() => completeServing(o.id)}>
+                <button className="primaryBtn2" type="button" onClick={() => completeServing(o)}>
                   提供完了
                 </button>
               )}

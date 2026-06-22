@@ -1,6 +1,6 @@
 import { useContext } from 'react'
 import { MenuLayout } from '../components/MenuLayout'
-import { CartContext } from '../CartContext'
+import { CartContext } from '../contexts/CartContext'
 import '../App.css'
 import '../menu.css'
 
@@ -12,7 +12,9 @@ export default function HistoryPage() {
   )
 
   const counts = allItems.reduce((acc, item) => {
-    acc[item.name] = (acc[item.name] || 0) + 1
+    const name = item.name || item.itemName || ''
+    const qty = item.qty ?? item.quantity ?? 1
+    acc[name] = (acc[name] || 0) + qty
     return acc
   }, {})
 

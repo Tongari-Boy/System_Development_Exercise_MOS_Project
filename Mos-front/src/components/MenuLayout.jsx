@@ -1,6 +1,6 @@
 import { useContext, useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { CartContext } from '../CartContext'
+import { CartContext } from '../contexts/CartContext'
 import { getStayUntil, isNormalPlan } from '../utils/stayTimer'
 import '../App.css'
 import '../menu.css'

@@ -1,30 +1,27 @@
-const STORAGE_KEY = 'orderHistory'
+import { orderApi } from './api.jsx'
 
 export const orderHistoryRepository = {
   async load() {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY)
-      return saved ? JSON.parse(saved) : []
+      const seatId = sessionStorage.getItem('seatId')
+      if (!seatId) return []
+      const orders = await orderApi.getOrdersByTable(seatId)
+      // バックエンドの OrderResponse を HistoryPage が期待する形式に変換
+      return orders.map((order) => ({
+        id: order.id,
+        createdAt: order.createdAt,
+        items: (order.items || []).map((it) => ({
+          name: it.itemName,
+          qty: it.quantity,
+        })),
+      }))
     } catch {
       return []
     }
   },
 
-  async save(history) {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(history))
-      return true
-    } catch {
-      return false
-    }
-  },
-
-  async clear() {
-    try {
-      localStorage.removeItem(STORAGE_KEY)
-      return true
-    } catch {
-      return false
-    }
-  }
+  // バックエンドが主記録のため save/clear は no-op
+  async save() { return true },
+  async clear() { return true },
 }
+
