@@ -1,6 +1,6 @@
 import { useContext } from 'react'
 import { MenuLayout } from '../components/MenuLayout'
-import { CartContext } from '../CartContext'
+import { CartContext } from '../contexts/CartContext'
 import '../App.css'
 import '../menu.css'
 

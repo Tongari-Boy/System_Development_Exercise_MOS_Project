@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { MenuLayout } from '../components/MenuLayout'
-import { CartContext } from '../CartContext'
+import { CartContext } from '../contexts/CartContext'
 import useStayRemaining from '../hooks/useStayRemaining'
 import '../App.css'
 import '../menu.css'

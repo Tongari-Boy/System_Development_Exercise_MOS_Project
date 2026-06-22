@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { CartContext } from './contexts/CartContext'
 import { orderHistoryRepository } from './services/orderHistoryRepository'
 import { orderApi } from './services/api'
 import { isStayExpired } from './utils/stayTimer'
+import { CartContext } from './contexts/CartContext'
 
 let cartIdCounter = 0
 
