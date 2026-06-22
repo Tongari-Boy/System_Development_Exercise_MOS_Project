@@ -38,8 +38,8 @@ public class MenuItem {
     private boolean soldOut = false;
 
     /**
-     * 飲み放題に含まれているかどうかのフラグ
-     * Falseなら含まれている/Trueなら除外
+     * 飲み放題から除外するかどうかのフラグ
+     * false: 含める / true: 除外する
      */
     @Column(name = "drink_plan_excluded")
     private boolean drinkPlanExcluded = false;
@@ -100,8 +100,8 @@ public class MenuItem {
     public void setSoldOut(boolean soldOut) { this.soldOut = soldOut; }
 
     /**
-     * 飲み放題に含まれているか判定
-     * @return drinkPlanExcluded    // フラグ(T/F)
+     * 飲み放題から除外するかどうかを返す
+     * @return true: 除外する / false: 含める
      */
     public boolean isDrinkPlanExcluded() { return drinkPlanExcluded; }
     public void setDrinkPlanExcluded(boolean drinkPlanExcluded) { this.drinkPlanExcluded = drinkPlanExcluded; }

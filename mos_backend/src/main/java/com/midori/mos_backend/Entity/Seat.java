@@ -17,7 +17,7 @@ public class Seat {
         EMPTY,  // 空席
         USING,  // 使用中
         PAID,   // 会計済み
-        STOPPED // 使用済み
+        STOPPED // 利用停止
     }
 
     /** 卓ID */

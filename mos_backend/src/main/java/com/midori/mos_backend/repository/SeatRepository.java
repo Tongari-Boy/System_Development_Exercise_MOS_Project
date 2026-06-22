@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 卓を管理するリポジトリクラス
+ * 卓を管理するリポジトリインターフェース
  */
 @Repository
 public interface SeatRepository extends JpaRepository<Seat, Long> {

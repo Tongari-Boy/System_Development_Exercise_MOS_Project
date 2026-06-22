@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 注文を管理するリポジトリクラス
+ * 注文を管理するリポジトリインターフェース
  */
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {

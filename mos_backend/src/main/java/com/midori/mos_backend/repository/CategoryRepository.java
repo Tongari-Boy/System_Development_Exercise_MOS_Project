@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * カテゴリを管理するリポジトリクラス
+ * カテゴリを管理するリポジトリインターフェース
  */
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {

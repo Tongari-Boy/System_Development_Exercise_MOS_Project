@@ -23,7 +23,7 @@ public class Category {
     @Column(name = "display_name", nullable = false, length = 100)
     private String displayName;
 
-    /** ソートフラグ */
+    /** ソート順 */
     @Column(name = "sort_order")
     private int sortOrder = 0;
 
