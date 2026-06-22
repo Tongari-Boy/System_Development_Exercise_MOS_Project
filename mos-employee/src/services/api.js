@@ -93,18 +93,30 @@ export function toFrontSeat(seat) {
 
 // ── Staff API ──────────────────────────────────────────
 
+function normalizeStaff(s) {
+  const useCases = s.allowedUseCaseList ?? s.allowedUseCases
+  return {
+    ...s,
+    allowedUseCases: Array.isArray(useCases)
+      ? useCases
+      : typeof useCases === 'string'
+        ? useCases.split(',').map((t) => t.trim()).filter(Boolean)
+        : [],
+  }
+}
+
 export const staffApi = {
   authenticate: (id, password) =>
-    api.post('/api/staff/authenticate', { id, password }).then((r) => r.data),
+    api.post('/api/staff/authenticate', { id, password }).then((r) => normalizeStaff(r.data)),
 
   getAll: () =>
-    api.get('/api/staff').then((r) => r.data),
+    api.get('/api/staff').then((r) => r.data.map(normalizeStaff)),
 
   create: (staff) =>
-    api.post('/api/staff', staff).then((r) => r.data),
+    api.post('/api/staff', staff).then((r) => normalizeStaff(r.data)),
 
   update: (id, staff) =>
-    api.put(`/api/staff/${id}`, staff).then((r) => r.data),
+    api.put(`/api/staff/${id}`, staff).then((r) => normalizeStaff(r.data)),
 
   delete: (id) =>
     api.delete(`/api/staff/${id}`),
