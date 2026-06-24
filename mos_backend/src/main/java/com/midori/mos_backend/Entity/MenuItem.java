@@ -28,17 +28,20 @@ public class MenuItem {
     @Column(nullable = false)
     private int price = 0;
 
+    /** 在庫 */
     @Column
     private Integer stock;
 
+    /** アクティブフラグ */
     @Column(nullable = false)
     private boolean active = true;
 
+    /** 売り切れフラグ */
     @Column(name = "is_sold_out")
     private boolean soldOut = false;
 
     /**
-     * 飲み放題から除外するかどうかのフラグ
+     * 飲み放題に含まれているかどうかのフラグ
      * false: 含める / true: 除外する
      */
     @Column(name = "drink_plan_excluded")
@@ -48,9 +51,11 @@ public class MenuItem {
     @Column(name = "image_url", length = 500)
     private String imageUrl;
 
+    /** カテゴリナンバー */
     @Column(nullable = false, length = 500)
     private String tags = "";
 
+    /** ソート順 */
     @Column(name = "sort_order")
     private int sortOrder = 0;
 
@@ -100,8 +105,8 @@ public class MenuItem {
     public void setSoldOut(boolean soldOut) { this.soldOut = soldOut; }
 
     /**
-     * 飲み放題から除外するかどうかを返す
-     * @return true: 除外する / false: 含める
+     * 飲み放題に含まれているか判定
+     * @return drinkPlanExcluded //フラグ(T/F)
      */
     public boolean isDrinkPlanExcluded() { return drinkPlanExcluded; }
     public void setDrinkPlanExcluded(boolean drinkPlanExcluded) { this.drinkPlanExcluded = drinkPlanExcluded; }
