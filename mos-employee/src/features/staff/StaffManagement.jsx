@@ -316,6 +316,7 @@ function StaffManagement({ onBack }) {
 
   const cancelPasswordConfirm = () => setPasswordConfirmTarget(null)
 
+  // パスワード変更二重確認モーダルで「はい」を押したときに実際に保存する
   const confirmPasswordChange = () => {
     if (!passwordConfirmTarget) return
     commitSave(passwordConfirmTarget.payload)
