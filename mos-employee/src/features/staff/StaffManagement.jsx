@@ -117,11 +117,13 @@ function StaffManagement({ onBack }) {
     setOpen(true)
   }
 
+  // 「編集」ボタン: 既存スタッフの情報を form に入れてモーダルを開く
+  // パスワードフィールドは空にしておく（変更しない場合は空のまま送る）
   const openEdit = (s) => {
     setMode('edit')
     setForm({
       ...s,
-      currentPassword: '',
+      currentPassword: '',  // セキュリティ上、現在のパスワードはフォームに入れない
       password: '',
       passwordConfirm: '',
     })
@@ -134,17 +136,22 @@ function StaffManagement({ onBack }) {
     setError('')
   }
 
+  /**
+   * 役職変更時に ID と allowedUseCases も自動更新する
+   *
+   * 新規追加（add）モード: 役職が変わったら ID のプレフィックスも変わるため採番し直す
+   * 編集（edit）モード: ID は固定のまま、allowedUseCases だけ役職に合わせて更新
+   */
   const handleRoleChange = (role) => {
     setForm((prev) => {
       if (mode === 'add') {
         return {
           ...prev,
           role,
-          id: generateIdByRole(role, staff),
+          id:              generateIdByRole(role, staff),
           allowedUseCases: getDefaultUseCasesFromRole(role),
         }
       }
-
       return {
         ...prev,
         role,
@@ -153,43 +160,58 @@ function StaffManagement({ onBack }) {
     })
   }
 
+  /**
+   * フォームの入力値を検証する
+   *
+   * 検証ルール:
+   *   共通: ID と名前が空でないか
+   *   新規追加: パスワードが必須、4文字以上、確認と一致
+   *   編集でパスワード変更: 現在のPW必須・正しいか確認、新PW 4文字以上、確認と一致
+   *   編集でパスワード変更なし: パスワード検証をスキップ
+   *
+   * @returns {string} エラーメッセージ（空文字 = 検証通過）
+   */
   const validate = () => {
-    const id = form.id.trim()
+    const id   = form.id.trim()
     const name = form.name.trim()
 
-    if (!id) return 'IDが空です'
+    if (!id)   return 'IDが空です'
     if (!name) return '名前を入力してください'
 
     if (mode === 'add') {
-      if (!form.password) return 'パスワードを入力してください'
-      if (form.password.length < 4) return 'パスワードは4文字以上にしてください'
-      if (form.password !== form.passwordConfirm) return '確認用パスワードが一致しません'
+      if (!form.password)                              return 'パスワードを入力してください'
+      if (form.password.length < 4)                   return 'パスワードは4文字以上にしてください'
+      if (form.password !== form.passwordConfirm)      return '確認用パスワードが一致しません'
     }
 
     if (mode === 'edit' && form.password) {
+      // パスワードを変更する場合のみ検証
       if (!form.currentPassword) return '現在のパスワードを入力してください'
 
       const currentStaff = staff.find((s) => s.id === form.id)
       if (!currentStaff) return '従業員情報が見つかりません'
 
+      // フロント側でも現在のパスワードが正しいかチェック（バックエンドでも検証する）
       if (currentStaff.password !== form.currentPassword) {
         return '現在のパスワードが違います'
       }
 
-      if (form.password.length < 4) return '新しいパスワードは4文字以上にしてください'
-      if (form.password !== form.passwordConfirm) return '確認用パスワードが一致しません'
+      if (form.password.length < 4)               return '新しいパスワードは4文字以上にしてください'
+      if (form.password !== form.passwordConfirm)  return '確認用パスワードが一致しません'
     }
 
-    return ''
+    return ''  // 全検証通過
   }
 
+  // API に送るペイロードを組み立てる
+  // 新規追加時は必ず active: true（開始直後から有効）
   const buildPayload = () => {
     return {
-      id: form.id.trim(),
-      name: form.name.trim(),
-      role: form.role,
-      active: mode === 'add' ? true : !!form.active,
-      password: form.password,
+      id:              form.id.trim(),
+      name:            form.name.trim(),
+      role:            form.role,
+      active:          mode === 'add' ? true : !!form.active,
+      password:        form.password,
       allowedUseCases: getDefaultUseCasesFromRole(form.role),
     }
   }
