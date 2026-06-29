@@ -225,34 +225,46 @@ function StaffManagement({ onBack }) {
 
     const payload = buildPayload()
 
+    // パスワード変更を伴う編集の場合は二重確認モーダルを挟む
     if (mode === 'edit' && form.password) {
       setPasswordConfirmTarget({ payload })
       return
     }
 
+    // パスワード変更なし（または新規追加）はそのまま保存
     commitSave(payload)
   }
 
+  /**
+   * 実際に API を呼んで保存する
+   *
+   * allowedUseCases をカンマ区切り文字列で送る理由:
+   *   バックエンドの API が文字列形式で受け付けるため（DB保存形式に合わせている）
+   *   フロント側では配列で管理し、API 送信直前に join(',') で変換する
+   *
+   * password が空文字の場合 undefined にする理由:
+   *   バックエンドが undefined キーは無視するが、空文字は「パスワードを空にする」と解釈するため
+   */
   const commitSave = async (payload) => {
     try {
       if (mode === 'add') {
         const staffData = {
-          id: payload.id,
-          name: payload.name,
-          role: payload.role,
-          active: true,
-          password: payload.password,
+          id:              payload.id,
+          name:            payload.name,
+          role:            payload.role,
+          active:          true,
+          password:        payload.password,
           allowedUseCases: payload.allowedUseCases.join(','),
         }
         const created = await staffApi.create(staffData)
         setStaff((prev) => [{ ...created, allowedUseCases: created.allowedUseCases || payload.allowedUseCases }, ...prev])
       } else {
         const staffData = {
-          id: payload.id,
-          name: payload.name,
-          role: payload.role,
-          active: payload.active,
-          password: payload.password || undefined,
+          id:              payload.id,
+          name:            payload.name,
+          role:            payload.role,
+          active:          payload.active,
+          password:        payload.password || undefined,  // 空文字なら送らない
           allowedUseCases: payload.allowedUseCases.join(','),
         }
         const updated = await staffApi.update(payload.id, staffData)
@@ -263,19 +275,21 @@ function StaffManagement({ onBack }) {
     } catch (e) {
       console.error('従業員保存エラー:', e)
       setError('保存に失敗しました')
-      return
+      return  // ここで return してモーダルを閉じない（エラーを画面に表示する）
     }
 
     setPasswordConfirmTarget(null)
     closeModal()
   }
 
+  // 有効化/無効化ボタン: 確認モーダルを開く（誤操作防止）
   const requestToggleActive = (s) => {
     setConfirmTarget({ id: s.id, name: s.name, nextActive: !s.active })
   }
 
   const cancelToggle = () => setConfirmTarget(null)
 
+  // 有効化/無効化の確認モーダルで「OK」を押したときの処理
   const confirmToggle = async () => {
     if (!confirmTarget) return
     const { id, nextActive } = confirmTarget
