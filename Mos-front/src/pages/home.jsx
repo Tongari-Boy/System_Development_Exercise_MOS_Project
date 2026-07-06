@@ -19,7 +19,7 @@
 // Link: <a> タグの代わりに React Router が提供するナビゲーション用コンポーネント
 //       クリックするとページ全体をリロードせずに画面を切り替える（SPA の動作）
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { seatApi } from '../services/api'
 import '../App.css' // スタイルシートを適用
 
@@ -30,9 +30,15 @@ export default function Home() {
   // QRコード読み取り直後の状態: 'idle'（通常表示）/ 'checking'（座席確認中）/ 'error'（無効・期限切れ）
   const [qrStatus, setQrStatus] = useState('idle')
 
+  // 直前に処理したcodeを記録し、同じcodeに対する二重リクエストを防ぐ
+  // （React.StrictModeの開発モードではuseEffectが2回実行されるため、ガードがないと
+  //   customer_countが1回のスキャンで2回加算されてしまう）
+  const processedCodeRef = useRef(null)
+
   useEffect(() => {
     const code = searchParams.get('code')
-    if (!code) return
+    if (!code || processedCodeRef.current === code) return
+    processedCodeRef.current = code
 
     let active = true
     setQrStatus('checking')
