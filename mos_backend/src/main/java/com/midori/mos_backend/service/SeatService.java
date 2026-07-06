@@ -5,12 +5,17 @@ import com.midori.mos_backend.repository.SeatRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Transactional
 public class SeatService {
+
+    /** QRコードの有効期限（分） */
+    private static final long QR_VALID_MINUTES = 5;
 
     private final SeatRepository seatRepository;
 
@@ -38,9 +43,27 @@ public class SeatService {
         return seatRepository.findBySeatNumber(number);
     }
 
+    /**
+     * QRコードで座席を特定する
+     * 有効期限切れのQRコードは無効として扱う（見つからなかったものとして返す）
+     */
     @Transactional(readOnly = true)
     public Optional<Seat> getSeatByQrCode(String qrCode) {
-        return seatRepository.findByQrCode(qrCode);
+        return seatRepository.findByQrCode(qrCode)
+                .filter(seat -> seat.getQrExpiresAt() != null
+                        && seat.getQrExpiresAt().isAfter(LocalDateTime.now()));
+    }
+
+    /**
+     * 座席用のQRコードを新規発行（再発行）する
+     * トークンはランダムなUUIDとし、発行から5分間のみ有効とする
+     */
+    public Seat issueQrCode(Long seatId) {
+        Seat seat = seatRepository.findById(seatId)
+                .orElseThrow(() -> new IllegalArgumentException("Seat not found: " + seatId));
+        seat.setQrCode(UUID.randomUUID().toString());
+        seat.setQrExpiresAt(LocalDateTime.now().plusMinutes(QR_VALID_MINUTES));
+        return seatRepository.save(seat);
     }
 
     public Seat updateStatus(Long seatId, Seat.Status newStatus, Integer customerCount) {
