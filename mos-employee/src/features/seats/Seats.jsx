@@ -15,6 +15,14 @@ import {
 } from '../../domain/seats/seatDb'
 import { seatApi } from '../../services/api.js'
 
+// お客様用アプリ（Mos-front）の公開URL。QRコードの飛び先として使う
+const CUSTOMER_APP_URL = import.meta.env.VITE_CUSTOMER_APP_URL || 'http://localhost:5174'
+
+// QRコードに埋め込むURLを組み立てる（お客様がスキャンするとMos-frontが開き、codeパラメータで座席を特定する）
+function buildQrUrl(qrCode) {
+  return `${CUSTOMER_APP_URL}/?code=${encodeURIComponent(qrCode)}`
+}
+
 const FILTERS = [
   { key: 'all', label: '全件' },
   { key: SEAT_STATUS.empty, label: '空席' },
@@ -138,7 +146,7 @@ function Seats() {
           0,
           Math.round((new Date(issued.qrExpiresAt).getTime() - Date.now()) / 1000)
         )
-        setActiveQrValue(issued.qrCode)
+        setActiveQrValue(buildQrUrl(issued.qrCode))
         setQrCountdown(remainingSec)
         setToast(`${seat.id} のQRコードを発行しました`)
       } catch (e) {
@@ -170,7 +178,7 @@ function Seats() {
         0,
         Math.round((new Date(issued.qrExpiresAt).getTime() - Date.now()) / 1000)
       )
-      setActiveQrValue(issued.qrCode)
+      setActiveQrValue(buildQrUrl(issued.qrCode))
       setQrCountdown(remainingSec)
       setToast(`${seat.id} のQRコードを再発行しました`)
     } catch (e) {

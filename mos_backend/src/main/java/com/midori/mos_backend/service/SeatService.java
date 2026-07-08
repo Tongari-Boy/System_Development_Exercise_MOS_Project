@@ -52,19 +52,11 @@ public class SeatService {
      *   - customer_count を1加算する（読み取るたびに人数をカウントする）
      */
     public Optional<Seat> getSeatByQrCode(String qrCode) {
-        Optional<Seat> seatOpt = seatRepository.findByQrCode(qrCode)
-                .filter(seat -> seat.getQrExpiresAt() != null
-                        && seat.getQrExpiresAt().isAfter(LocalDateTime.now()));
-
-        seatOpt.ifPresent(seat -> {
-            if (seat.getSessionStartedAt() == null) {
-                seat.setSessionStartedAt(LocalDateTime.now());
-            }
-            seat.setCustomerCount(seat.getCustomerCount() + 1);
-            seatRepository.save(seat);
-        });
-
-        return seatOpt;
+        int updated = seatRepository.recordQrScan(qrCode, LocalDateTime.now());
+        if (updated == 0) {
+            return Optional.empty();
+        }
+        return seatRepository.findByQrCode(qrCode);
     }
 
     /**

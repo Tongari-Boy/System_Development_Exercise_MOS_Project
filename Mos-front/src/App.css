@@ -134,6 +134,10 @@
   margin: 0;
 }
 
+.home-qr-error {
+  color: #ff8a80;
+}
+
 .home-actions {
   display: flex;
   flex-direction: column;
