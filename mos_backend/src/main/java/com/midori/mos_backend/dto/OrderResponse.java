@@ -15,6 +15,7 @@ public class OrderResponse {
     private String status;
     private int totalAmount;
     private String courseType;
+    private String customerId;
     private List<OrderItemResponse> items;
     private LocalDateTime createdAt;
     private LocalDateTime orderedAt;
@@ -27,6 +28,7 @@ public class OrderResponse {
         res.status = order.getStatus().name();
         res.totalAmount = order.getTotalAmount();
         res.courseType = order.getCourseType();
+        res.customerId = order.getCustomerId();
         res.createdAt = order.getCreatedAt();
         res.orderedAt = order.getOrderedAt();
         res.items = order.getItems().stream()
@@ -68,6 +70,7 @@ public class OrderResponse {
     public String getStatus() { return status; }
     public int getTotalAmount() { return totalAmount; }
     public String getCourseType() { return courseType; }
+    public String getCustomerId() { return customerId; }
     public List<OrderItemResponse> getItems() { return items; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getOrderedAt() { return orderedAt; }
