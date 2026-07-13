@@ -2,3 +2,4 @@ mos_backend/.env
 mos-employee/.env
 node_modules/
 mos_backend/src/main/resources/application.properties
+.idea/claudeCodeEditorTabs.xml
