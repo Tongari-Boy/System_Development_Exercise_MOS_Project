@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ClaudeCodeEditorTabs">
+    <option name="activeSessionId" value="00075a61-3f71-4177-8023-7009b6621758" />
+    <option name="openSessionIds">
+      <list>
+        <option value="a3bf10e9-3279-4070-baf5-6341296963e9" />
+        <option value="00075a61-3f71-4177-8023-7009b6621758" />
+      </list>
+    </option>
+    <option name="sessionPaths">
+      <map>
+        <entry key="00075a61-3f71-4177-8023-7009b6621758" value="/sessions/91b31107-080b-4f5a-8f3e-e3f88b2de16a" />
+        <entry key="a3bf10e9-3279-4070-baf5-6341296963e9" value="/sessions/91b31107-080b-4f5a-8f3e-e3f88b2de16a" />
+      </map>
+    </option>
+    <option name="sessionTitles">
+      <map>
+        <entry key="00075a61-3f71-4177-8023-7009b6621758" value="バックエンドに実際にQRコードを取得するシステムを追加してください。 また現在はmos-employ" />
+        <entry key="a3bf10e9-3279-4070-baf5-6341296963e9" value="バックエンドに実際にQRコードを取得するシステムを追加してください。 また現在はmos-employ" />
+      </map>
+    </option>
+  </component>
+</project>
