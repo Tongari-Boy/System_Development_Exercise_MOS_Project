@@ -69,6 +69,10 @@ export function CartProvider({ children }) {
   // ロード完了前に save() が走ってしまうのを防ぐために使う
   const [hasLoadedHistory, setHasLoadedHistory] = useState(false)
 
+  // lastCustomerId: 直近の注文でバックエンドが発行した7桁の客番号
+  // 注文完了画面でお客様に表示し、レジ（POS）での会計時に伝えてもらう
+  const [lastCustomerId, setLastCustomerId] = useState(null)
+
   // ── 初回マウント時に注文履歴をバックエンドから読み込む ──────
 
   useEffect(() => {
@@ -203,7 +207,11 @@ export function CartProvider({ children }) {
         }))
       }
 
-      await orderApi.createOrder(orderRequest)
+      const created = await orderApi.createOrder(orderRequest)
+      // バックエンドが発行した客番号を保持（注文完了画面で表示する）
+      if (created?.customerId) {
+        setLastCustomerId(created.customerId)
+      }
     } catch (e) {
       // API失敗時はコンソールに警告を出すだけで、ユーザーへのエラー表示はしない
       // → ローカル記録は残っているので、ユーザー体験を損なわない
@@ -227,7 +235,8 @@ export function CartProvider({ children }) {
         resetCart,               // カートを空にする
         resetOrderHistory,       // 注文履歴をリセット
         orderHistory,            // 過去の注文履歴
-        confirmOrder             // 注文を確定・送信する
+        confirmOrder,            // 注文を確定・送信する
+        lastCustomerId           // 直近注文の客番号（レジ会計用）
       }}
     >
       {/* children: CartProvider で囲まれたすべての子コンポーネント */}
