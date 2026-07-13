@@ -1,10 +1,15 @@
 package com.midori.mos_backend.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.midori.mos_backend.Entity.Order;
 import com.midori.mos_backend.dto.OrderItemRequest;
 import com.midori.mos_backend.dto.OrderRequest;
 import com.midori.mos_backend.dto.OrderResponse;
+import com.midori.mos_backend.dto.pos.PosApiException;
+import com.midori.mos_backend.dto.pos.PosErrorResponse;
+import com.midori.mos_backend.dto.pos.PosOrderRequest;
 import com.midori.mos_backend.service.OrderService;
+import com.midori.mos_backend.service.PosOrderService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,15 +22,55 @@ import java.util.stream.Collectors;
 public class OrderController {
 
     private final OrderService orderService;
+    private final PosOrderService posOrderService;
+    private final ObjectMapper objectMapper;
 
-    public OrderController(OrderService orderService) {
+    public OrderController(OrderService orderService,
+                           PosOrderService posOrderService,
+                           ObjectMapper objectMapper) {
         this.orderService = orderService;
+        this.posOrderService = posOrderService;
+        this.objectMapper = objectMapper;
     }
 
+    /**
+     * POST /api/orders
+     *
+     * このエンドポイントは2種類のクライアントが利用する:
+     *   1. お客様用アプリ（Mos-front）… 通常の注文作成（method フィールドなし）
+     *   2. レジ（POS）… RPC方式。method フィールドで getOrders / updateStatus を指定
+     *
+     * リクエストボディに "method" が含まれるかどうかで振り分ける。
+     */
     @PostMapping
-    public ResponseEntity<OrderResponse> createOrder(@RequestBody OrderRequest request) {
-        Order order = orderService.createOrder(request);
-        return ResponseEntity.ok(OrderResponse.from(order));
+    public ResponseEntity<?> handleOrders(@RequestBody Map<String, Object> body) {
+        Object method = body.get("method");
+
+        if (method == null) {
+            // method なし → お客様用アプリからの通常の注文作成
+            OrderRequest request = objectMapper.convertValue(body, OrderRequest.class);
+            Order order = orderService.createOrder(request);
+            return ResponseEntity.ok(OrderResponse.from(order));
+        }
+
+        // method あり → レジ（POS）からのRPC
+        PosOrderRequest posRequest = objectMapper.convertValue(body, PosOrderRequest.class);
+        try {
+            switch (String.valueOf(method)) {
+                case "getOrders":
+                    return ResponseEntity.ok(posOrderService.getOrders(posRequest));
+                case "updateStatus":
+                    posOrderService.updateStatus(posRequest);
+                    // 正常系はボディなし（POS側は空ボディを想定）
+                    return ResponseEntity.ok().build();
+                default:
+                    return ResponseEntity.badRequest()
+                            .body(new PosErrorResponse("INVALID_REQUEST", "未対応のメソッドです: " + method));
+            }
+        } catch (PosApiException e) {
+            return ResponseEntity.status(e.getHttpStatus())
+                    .body(new PosErrorResponse(e.getErrorCode(), e.getMessage()));
+        }
     }
 
     @GetMapping("/{id}")
