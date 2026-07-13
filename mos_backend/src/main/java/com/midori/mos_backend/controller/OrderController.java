@@ -1,6 +1,6 @@
 package com.midori.mos_backend.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.midori.mos_backend.Entity.Order;
 import com.midori.mos_backend.dto.OrderItemRequest;
 import com.midori.mos_backend.dto.OrderRequest;
