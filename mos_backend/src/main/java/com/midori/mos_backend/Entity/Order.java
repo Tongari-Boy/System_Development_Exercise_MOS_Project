@@ -55,6 +55,26 @@ public class Order {
     private String courseType;
 
     /**
+     * レジ（POS）連携用の7桁客番号
+     * 注文確定時に発行し、お客様が会計時にレジへ伝える
+     */
+    @Column(name = "customer_id", length = 7)
+    private String customerId;
+
+    /**
+     * レジ（POS）連携用の会計状況（複合指定可のビットマスク）
+     * OPEN=1(受付中) / PAID=2(会計済み) / RECEIVABLE=4(未収金) / CHECKING=8(会計中)
+     * 提供状況（status）とは独立した、支払いの状態を表す
+     */
+    @Column(name = "bill_status", nullable = false)
+    private int billStatus = BILL_STATUS_OPEN;
+
+    public static final int BILL_STATUS_OPEN = 1;
+    public static final int BILL_STATUS_PAID = 2;
+    public static final int BILL_STATUS_RECEIVABLE = 4;
+    public static final int BILL_STATUS_CHECKING = 8;
+
+    /**
      * 注文商品
      * 一つの商品内に、複数のものがあるものに対応
      */
@@ -125,6 +145,12 @@ public class Order {
 
     public String getCourseType() { return courseType; }
     public void setCourseType(String courseType) { this.courseType = courseType; }
+
+    public String getCustomerId() { return customerId; }
+    public void setCustomerId(String customerId) { this.customerId = customerId; }
+
+    public int getBillStatus() { return billStatus; }
+    public void setBillStatus(int billStatus) { this.billStatus = billStatus; }
 
     public List<OrderItem> getItems() { return items; }
     public void setItems(List<OrderItem> items) { this.items = items; }
