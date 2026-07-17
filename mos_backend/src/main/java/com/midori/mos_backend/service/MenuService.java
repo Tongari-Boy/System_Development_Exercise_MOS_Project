@@ -47,7 +47,9 @@ public class MenuService {
      * @return
      */
     public List<MenuItem> getAllAvailableItems() {
-        return menuItemRepository.findBySoldOutFalseOrderBySortOrderAsc();
+        return menuItemRepository.findBySoldOutFalseOrderBySortOrderAsc().stream()
+                .filter(MenuItem::isActive)
+                .collect(Collectors.toList());
     }
 
     public List<MenuItem> getAllItems() {
