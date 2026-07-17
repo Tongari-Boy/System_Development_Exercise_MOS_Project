@@ -9,6 +9,7 @@ public class MenuItemRequest {
     private boolean active = true;
     private List<String> tags;
     private Long categoryId;
+    private String imageUrl;
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -27,4 +28,7 @@ public class MenuItemRequest {
 
     public Long getCategoryId() { return categoryId; }
     public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
+
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 }
