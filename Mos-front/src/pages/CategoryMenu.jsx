@@ -24,21 +24,33 @@ import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MenuLayout } from '../components/MenuLayout'
 import { CartContext } from '../contexts/CartContext'
-import menuItems from '../data/menuItems'
+import { menuApi } from '../services/api'
+import { resolveMenuImage } from '../data/menuImages'
 import useStayRemaining from '../hooks/useStayRemaining'
 import '../App.css'
 import '../menu.css'
 import '../menubook.css'
 
-// メニューのカテゴリ定義（表示順序通りに並べる）
-const categories = [
-  { id: 'yakitori', label: '焼き鳥'     },
-  { id: 'speed',    label: 'スピード'   },
-  { id: 'rice',     label: 'ごはんもの' },
-  { id: 'drink',    label: 'ドリンク'   },
-  { id: 'dessert',  label: 'デザート'   },
-  { id: 'free',     label: '無料備品'   }
-]
+// メニューを定期的に再取得する間隔（ミリ秒）
+// 従業員側での売り切れ・在庫変更や新商品追加を、開きっぱなしの画面にも反映するため
+const MENU_REFRESH_INTERVAL_MS = 30000
+
+/**
+ * バックエンドの MenuItem レスポンスをこの画面で使う形に変換する
+ * category: ネストされた category オブジェクトから name（'yakitori' など）だけ取り出す
+ * image: DB の imageUrl があればそれを、なければローカルのフォールバック画像を使う
+ */
+function mapMenuItem(raw) {
+  return {
+    id: raw.id,
+    name: raw.name,
+    price: raw.price,
+    soldOut: raw.soldOut,
+    drinkPlanExcluded: raw.drinkPlanExcluded,
+    category: raw.category?.name,
+    image: resolveMenuImage(raw),
+  }
+}
 
 // ── アールデコ風の放射状装飾 SVG ─────────────────────────────
 /**
@@ -104,6 +116,56 @@ export default function CategoryMenu() {
   const { cartItems, addToCart, resetCart, resetOrderHistory } = useContext(CartContext)
   const { isExpired } = useStayRemaining()
   const navigate = useNavigate()
+
+  // ── メニューデータ（バックエンドから取得）─────────────────────
+
+  // categories: カテゴリ一覧（DB の categories テーブルから取得。sortOrder順）
+  const [categories, setCategories] = useState([])
+
+  // itemsByCategory: { カテゴリ名: 商品配列 } の形で保持する
+  const [itemsByCategory, setItemsByCategory] = useState({})
+
+  const [menuLoading, setMenuLoading] = useState(true)
+  const [menuError, setMenuError] = useState(null)
+
+  // 初回マウント時にカテゴリ＋全カテゴリの商品を取得し、以後は定期的に再取得する
+  // （従業員側の売り切れ・在庫・新商品追加を、開きっぱなしの画面にも反映するため）
+  useEffect(() => {
+    let cancelled = false
+
+    async function fetchMenu() {
+      try {
+        const cats = await menuApi.getCategories()
+        const mappedCats = cats.map((c) => ({ id: c.name, label: c.displayName }))
+
+        // カテゴリごとの商品一覧を並行して取得する
+        const itemLists = await Promise.all(
+          mappedCats.map((c) => menuApi.getItemsByCategory(c.id))
+        )
+        if (cancelled) return
+
+        const dict = {}
+        mappedCats.forEach((c, i) => {
+          dict[c.id] = itemLists[i].map(mapMenuItem)
+        })
+
+        setCategories(mappedCats)
+        setItemsByCategory(dict)
+        setMenuError(null)
+      } catch (e) {
+        if (!cancelled) setMenuError(e)
+      } finally {
+        if (!cancelled) setMenuLoading(false)
+      }
+    }
+
+    fetchMenu()
+    const interval = setInterval(fetchMenu, MENU_REFRESH_INTERVAL_MS)
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+    }
+  }, [])
 
   // ── ページめくりの状態 ──────────────────────────────────────
 
@@ -304,9 +366,20 @@ export default function CategoryMenu() {
 
   // ── レンダー用の計算 ─────────────────────────────────────────
 
+  // カテゴリ取得前・取得失敗時は、めくれるページが無いので専用の画面を出す
+  if (menuLoading || categories.length === 0) {
+    return (
+      <MenuLayout activeTab="categories">
+        <div className="menu-loading">
+          {menuError ? 'メニューの読み込みに失敗しました' : '読み込み中...'}
+        </div>
+      </MenuLayout>
+    )
+  }
+
   // 現在表示中のカテゴリ情報と、そのカテゴリに属する商品リスト
-  const cat = categories[displayIndex]
-  const items = menuItems.filter((m) => m.category === cat.id)
+  const cat = categories[displayIndex] || categories[0]
+  const items = itemsByCategory[cat.id] || []
 
   // ページめくりアニメーション用の CSS クラス名を計算
   // 例: flipPhase='exit', flipDir='next' → 'flip-next-exit'
